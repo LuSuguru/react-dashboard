@@ -1,0 +1,14 @@
+coverage
+docs
+node_modules
+script
+src
+.editorconfig
+.eslintignore
+.eslintrc
+.fatherrc.ts
+.gitignore
+.umirc.ts
+tsconfig.json
+yarn-error.log
+yarn.lock
