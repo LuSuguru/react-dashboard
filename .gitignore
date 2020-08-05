@@ -1,17 +1,19 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/npm-debug.log*
-/yarn-error.log
-/yarn.lock
-/package-lock.json
+**/node_modules
+**/npm-debug.log*
+**/yarn-error.log
+**/yarn.lock
+**/package-lock.json
+**/webpack_cache
 
 # production
-/dist
-/docs-dist
-/es
-/lib
+**/dist
+**/docs-dist
+**/es
+**/lib
+**/build
 
 # misc
 .DS_Store
