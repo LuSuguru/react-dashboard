@@ -1,4 +1,4 @@
-import { MouseEvent as ReactMouseEvent, useState, useEffect, useRef } from 'react'
+import { MouseEvent as ReactMouseEvent, useState, useEffect, useRef, RefObject } from 'react'
 
 export interface DraggableData {
   node: HTMLElement
@@ -9,17 +9,26 @@ export interface DraggableData {
   lastX: number
   lastY: number
 }
-interface Props {
+export interface Props {
   handleNode: any // 拖动区域
   cancelNode: any //  不可拖动区域
   disabled: boolean // 是否开启关闭拖动
-  offsetParent: HTMLElement // 参考的父节点
+  offsetParent: HTMLElement | null// 参考的父节点
   scale: number // 缩放放大比例
-  grid: [number, number] // 最小的移动距离
-  onMouseDown: (e: ReactMouseEvent<HTMLElement>) => void
-  onStart: (e: ReactMouseEvent<HTMLElement>, coreEvent: DraggableData) => boolean
-  onDrag: (e: ReactMouseEvent<HTMLElement>, coreEvent: DraggableData) => boolean
-  onStop: (e: ReactMouseEvent<HTMLElement>, coreEvent: DraggableData) => boolean
+  grid: [number, number] | null// 最小的移动距离
+  onMouseDown?: (e: ReactMouseEvent<HTMLElement>) => any
+  onStart?: (e: ReactMouseEvent<HTMLElement>, coreEvent: DraggableData) => any
+  onDrag?: (e: ReactMouseEvent<HTMLElement>, coreEvent: DraggableData) => any
+  onStop?: (e: ReactMouseEvent<HTMLElement>, coreEvent: DraggableData) => any
+}
+
+export const defaultCoreProps: Props = {
+  handleNode: null,
+  cancelNode: null,
+  disabled: false,
+  offsetParent: null,
+  scale: 1,
+  grid: null
 }
 
 function getOffsetXYFromParent(e: ReactMouseEvent<HTMLElement>, offsetParent: HTMLElement, scale: number) {
@@ -38,13 +47,14 @@ function snapToGrid(gird: [number, number], deltaX: number, deltaY: number) {
   return [x, y]
 }
 
-export default function useDraggable(node: HTMLElement, props: Props) {
+export default function useDraggable(nodeRef: RefObject<HTMLElement>, props: Props) {
   const [dragging, setDragging] = useState(false)
   const [{ lastX, lastY }, setLastXY] = useState({ lastX: NaN, lastY: NaN })
 
+  const node = nodeRef.current as HTMLElement
   const mounted = useRef(false)
 
-  const { disabled = false, handleNode, cancelNode, scale = 1, grid } = props
+  const { disabled, handleNode, cancelNode, scale, grid } = { ...defaultCoreProps, ...props }
 
   useEffect(() => {
     mounted.current = true
@@ -79,7 +89,7 @@ export default function useDraggable(node: HTMLElement, props: Props) {
 
   function getPostion(e: ReactMouseEvent<HTMLElement>) {
     const offsetParent = props.offsetParent || node.offsetParent || node.ownerDocument.body
-    return getOffsetXYFromParent(e, offsetParent, scale)
+    return getOffsetXYFromParent(e, offsetParent as HTMLElement, scale)
   }
 
   function onDrag(e: ReactMouseEvent<HTMLElement>) {
@@ -98,7 +108,7 @@ export default function useDraggable(node: HTMLElement, props: Props) {
     const coreEvent = createCoreData(node, x, y)
 
     const shouldUpdate = props?.onDrag(e, coreEvent)
-    if (!shouldUpdate || !mounted.current) {
+    if (shouldUpdate === false || !mounted.current) {
       onMouseUp(new MouseEvent('mouseup') as any)
       return
     }
@@ -112,7 +122,7 @@ export default function useDraggable(node: HTMLElement, props: Props) {
     const coreEvent = createCoreData(node, x, y)
 
     const shouldContinue = props?.onStop(e, coreEvent)
-    if (!shouldContinue || !mounted.current) return false
+    if (shouldContinue === false || !mounted.current) return false
 
     setDragging(false)
     setLastXY({ lastX: NaN, lastY: NaN })
@@ -125,7 +135,7 @@ export default function useDraggable(node: HTMLElement, props: Props) {
   }
 
   function onMouseDown(e: ReactMouseEvent<HTMLElement>) {
-    props.onMouseDown(e)
+    props?.onMouseDown(e)
 
     const { ownerDocument } = node
 
@@ -140,7 +150,7 @@ export default function useDraggable(node: HTMLElement, props: Props) {
     const coreEvent = createCoreData(node, x, y)
 
     const shouldUpdate = props?.onStart(e, coreEvent)
-    if (!shouldUpdate || !mounted.current) {
+    if (shouldUpdate === false || !mounted.current) {
       return
     }
 
