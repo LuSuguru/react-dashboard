@@ -1,4 +1,7 @@
 import { MouseEvent as ReactMouseEvent, useState, useEffect, useRef, RefObject } from 'react'
+import { isNum } from './utils/utils'
+import usePersistFn from './utils/usePersistFn'
+import { addUserSelectStyles, removeUserSelectStyles, matchesAndParentsTo } from './utils/dom'
 
 export interface DraggableData {
   node: HTMLElement
@@ -10,12 +13,13 @@ export interface DraggableData {
   lastY: number
 }
 export interface Props {
-  handleNode: any // 拖动区域
-  cancelNode: any //  不可拖动区域
-  disabled: boolean // 是否开启关闭拖动
-  offsetParent: HTMLElement | null// 参考的父节点
-  scale: number // 缩放放大比例
-  grid: [number, number] | null// 最小的移动距离
+  handle?: string // 拖动区域的选择器
+  cancel?: string //  不可拖动区域的选择器
+  disabled?: boolean // 是否开启关闭拖动
+  offsetParent?: HTMLElement | null// 参考的父节点
+  scale?: number // 缩放放大比例
+  grid?: [number, number] | null// 最小的移动距离
+  enableUserSelectHack?: boolean // 是否可以 user-select
   onMouseDown?: (e: ReactMouseEvent<HTMLElement>) => any
   onStart?: (e: ReactMouseEvent<HTMLElement>, coreEvent: DraggableData) => any
   onDrag?: (e: ReactMouseEvent<HTMLElement>, coreEvent: DraggableData) => any
@@ -23,12 +27,9 @@ export interface Props {
 }
 
 export const defaultCoreProps: Props = {
-  handleNode: null,
-  cancelNode: null,
   disabled: false,
-  offsetParent: null,
   scale: 1,
-  grid: null
+  enableUserSelectHack: true
 }
 
 function getOffsetXYFromParent(e: ReactMouseEvent<HTMLElement>, offsetParent: HTMLElement, scale: number) {
@@ -51,26 +52,29 @@ export default function useDraggable(nodeRef: RefObject<HTMLElement>, props: Pro
   const [dragging, setDragging] = useState(false)
   const [{ lastX, lastY }, setLastXY] = useState({ lastX: NaN, lastY: NaN })
 
-  const node = nodeRef.current as HTMLElement
   const mounted = useRef(false)
 
-  const { disabled, handleNode, cancelNode, scale, grid } = { ...defaultCoreProps, ...props }
+  const { disabled, handle, cancel, scale, grid, enableUserSelectHack } = { ...defaultCoreProps, ...props }
 
   useEffect(() => {
     mounted.current = true
     return () => {
       mounted.current = false
 
-      if (node) {
-        const { ownerDocument } = node
+      if (nodeRef.current) {
+        const { ownerDocument } = nodeRef.current
         ownerDocument.removeEventListener('mousemove', onDrag as any)
         ownerDocument.removeEventListener('mouseup', onMouseUp as any)
+
+        if (enableUserSelectHack) {
+          removeUserSelectStyles(ownerDocument)
+        }
       }
     }
   }, [])
 
   function createCoreData(node: HTMLElement, x: number, y: number): DraggableData {
-    const isStart = Number.isNaN(lastX)
+    const isStart = !isNum(lastX)
     if (isStart) {
       return {
         node,
@@ -88,11 +92,11 @@ export default function useDraggable(nodeRef: RefObject<HTMLElement>, props: Pro
   }
 
   function getPostion(e: ReactMouseEvent<HTMLElement>) {
-    const offsetParent = props.offsetParent || node.offsetParent || node.ownerDocument.body
+    const offsetParent = props.offsetParent || nodeRef.current.offsetParent || nodeRef.current.ownerDocument.body
     return getOffsetXYFromParent(e, offsetParent as HTMLElement, scale)
   }
 
-  function onDrag(e: ReactMouseEvent<HTMLElement>) {
+  const onDrag = usePersistFn((e: ReactMouseEvent<HTMLElement>) => {
     let { x, y } = getPostion(e)
 
     if (Array.isArray(grid)) {
@@ -105,53 +109,65 @@ export default function useDraggable(nodeRef: RefObject<HTMLElement>, props: Pro
       y = lastY + deltaY
     }
 
-    const coreEvent = createCoreData(node, x, y)
+    const coreEvent = createCoreData(nodeRef.current, x, y)
 
-    const shouldUpdate = props?.onDrag(e, coreEvent)
+    console.log(coreEvent.x, coreEvent.y)
+
+    const shouldUpdate = props.onDrag?.(e, coreEvent)
     if (shouldUpdate === false || !mounted.current) {
       onMouseUp(new MouseEvent('mouseup') as any)
       return
     }
 
     setLastXY({ lastX: x, lastY: y })
-  }
+  })
 
-  function onMouseUp(e: ReactMouseEvent<HTMLElement>) {
+  const onMouseUp = usePersistFn((e: ReactMouseEvent<HTMLElement>) => {
     if (!dragging) return
-    const { x, y } = getPostion(e)
-    const coreEvent = createCoreData(node, x, y)
 
-    const shouldContinue = props?.onStop(e, coreEvent)
+    const { x, y } = getPostion(e)
+    const coreEvent = createCoreData(nodeRef.current, x, y)
+
+    const shouldContinue = props.onStop?.(e, coreEvent)
     if (shouldContinue === false || !mounted.current) return false
 
     setDragging(false)
     setLastXY({ lastX: NaN, lastY: NaN })
 
-    if (node) {
-      const { ownerDocument } = node
-      ownerDocument.removeEventListener('mousemove', onDrag as any)
-      ownerDocument.removeEventListener('mouseup', onMouseUp as any)
+    if (nodeRef.current) {
+      const { ownerDocument } = nodeRef.current
+
+      if (enableUserSelectHack) {
+        removeUserSelectStyles(ownerDocument)
+      }
+
+      ownerDocument.removeEventListener('mousemove', onDrag as any, { capture: true })
+      ownerDocument.removeEventListener('mouseup', onMouseUp as any, { capture: true })
     }
-  }
+  })
 
-  function onMouseDown(e: ReactMouseEvent<HTMLElement>) {
-    props?.onMouseDown(e)
+  const onMouseDown = usePersistFn((e: ReactMouseEvent<HTMLElement>) => {
+    props.onMouseDown?.(e)
 
-    const { ownerDocument } = node
+    const { ownerDocument } = nodeRef.current
 
     if (disabled
       || !(e.target instanceof (<any>ownerDocument.defaultView).Node)
-      || !(handleNode && e.target === handleNode)
-      || (cancelNode && e.target === cancelNode)) {
+      || (handle && !matchesAndParentsTo(e.target as Element, handle, nodeRef.current))
+      || (cancel && matchesAndParentsTo(e.target as Element, cancel, nodeRef.current))) {
       return
     }
 
     const { x, y } = getPostion(e)
-    const coreEvent = createCoreData(node, x, y)
+    const coreEvent = createCoreData(nodeRef.current, x, y)
 
-    const shouldUpdate = props?.onStart(e, coreEvent)
+    const shouldUpdate = props.onStart?.(e, coreEvent)
     if (shouldUpdate === false || !mounted.current) {
       return
+    }
+
+    if (enableUserSelectHack) {
+      addUserSelectStyles(ownerDocument)
     }
 
     setDragging(true)
@@ -159,7 +175,7 @@ export default function useDraggable(nodeRef: RefObject<HTMLElement>, props: Pro
 
     ownerDocument.addEventListener('mousemove', onDrag as any, { capture: true })
     ownerDocument.addEventListener('mouseup', onMouseUp as any, { capture: true })
-  }
+  })
 
   return {
     onMouseDown,
