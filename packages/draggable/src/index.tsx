@@ -1,29 +1,11 @@
 import React, { ReactElement, cloneElement, useRef, useState, useEffect, MouseEvent } from 'react'
 import classnames from 'clsx'
 
-import useDraggable, { DraggableData, Props as DraggableCoreProps, defaultCoreProps } from './useDraggable'
+import useDraggable, { DraggableCoreProps, defaultCoreProps } from './useDraggable'
 import { innerRect, outerRect } from './utils/dom'
 import { int, isNum } from './utils/utils'
 import browserPrefix, { browserPrefixToKey } from './utils/getPrefix'
-
-interface Position {
-  x: number
-  y: number
-}
-
-interface PositionOffset {
-  x: number | string
-  y: number | string
-}
-
-interface BoundRect {
-  left: number
-  right: number
-  top: number
-  bottom: number
-}
-
-type Axis = 'both' | 'x' | 'y' | 'none'
+import { Position, PositionOffset, BoundRect, Axis, DraggableData } from './types'
 
 interface Props extends DraggableCoreProps {
   axis?: Axis
@@ -37,7 +19,7 @@ interface Props extends DraggableCoreProps {
   defaultClassNameDragged?: string
 }
 
-const defaultProps: Props = {
+const defaultProps: Partial<Props> = {
   ...defaultCoreProps,
   axis: 'both',
   bounds: undefined,

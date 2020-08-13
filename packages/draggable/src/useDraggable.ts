@@ -1,18 +1,10 @@
 import { MouseEvent as ReactMouseEvent, useState, useEffect, useRef, RefObject } from 'react'
 import { isNum } from './utils/utils'
+import { DraggableData } from './types'
 import usePersistFn from './utils/usePersistFn'
 import { addUserSelectStyles, removeUserSelectStyles, matchesAndParentsTo } from './utils/dom'
 
-export interface DraggableData {
-  node: HTMLElement
-  x: number
-  y: number
-  deltaX: number
-  deltaY: number
-  lastX: number
-  lastY: number
-}
-export interface Props {
+export interface DraggableCoreProps {
   handle?: string // 拖动区域的选择器
   cancel?: string //  不可拖动区域的选择器
   disabled?: boolean // 是否开启关闭拖动
@@ -26,7 +18,7 @@ export interface Props {
   onStop?: (e: ReactMouseEvent<HTMLElement>, coreEvent: DraggableData) => any
 }
 
-export const defaultCoreProps: Props = {
+export const defaultCoreProps: Partial<DraggableCoreProps> = {
   disabled: false,
   scale: 1,
   enableUserSelectHack: true
@@ -48,7 +40,7 @@ function snapToGrid(gird: [number, number], deltaX: number, deltaY: number) {
   return [x, y]
 }
 
-export default function useDraggable(nodeRef: RefObject<HTMLElement>, props: Props) {
+export default function useDraggable(nodeRef: RefObject<HTMLElement>, props: DraggableCoreProps) {
   const [dragging, setDragging] = useState(false)
   const [{ lastX, lastY }, setLastXY] = useState({ lastX: NaN, lastY: NaN })
 
