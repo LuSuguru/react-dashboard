@@ -1,15 +1,18 @@
-import React, { memo, useRef, useState } from 'react'
+import React, { useState, MouseEvent, forwardRef } from 'react'
 import ReactDOM from 'react-dom'
-import Draggable from 'draggable'
+import Draggable from 'draggable/index'
 
 import './style.less'
+
+const Box = forwardRef((props, ref) => <div className="box" ref={ref} {...props}>有包裹层</div>)
 
 function App() {
   const [deltaPosition, setDeltaPosition] = useState({ x: 0, y: 0 })
   const [position, setPosition] = useState({ x: -400, y: 200 })
 
-  function onControlledDrag(e, position) {
-    const { x, y } = position
+  function onControlledDrag(e, pos) {
+    const { x, y } = pos
+    console.log(position)
     setPosition({ x, y })
   }
 
@@ -17,8 +20,33 @@ function App() {
     setDeltaPosition({ x: deltaPosition.x + uiData.deltaX, y: deltaPosition.y + uiData.deltaY })
   }
 
+  function onChangeXPos(e: MouseEvent<HTMLElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const { x, y } = position
+    setPosition({
+      x: x - 10,
+      y
+    })
+  }
+
+  function onChangeYPos(e: MouseEvent<HTMLElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const { x, y } = position
+    setPosition({
+      x,
+      y: y - 10
+    })
+  }
+
   return (
     <>
+      <Draggable position={position} onStop={onControlledDrag}>
+        <Box />
+      </Draggable>
       <Draggable>
         <div className="box">任意移动</div>
       </Draggable>
@@ -107,12 +135,23 @@ function App() {
       <Draggable position={position} onDrag={onControlledDrag}>
         <div className="box">
           受控的
-          {/* <div>
-            <a href="#" onClick={this.adjustXPos}>控制 x ({controlledPosition.x})</a>
+          <div>
+            <a href="#" onClick={onChangeXPos}>控制 x ({position.x})</a>
           </div>
           <div>
-            <a href="#" onClick={this.adjustYPos}>控制 y ({controlledPosition.y})</a>
-          </div> */}
+            <a href="#" onClick={onChangeYPos}>控制 y ({position.y})</a>
+          </div>
+        </div>
+      </Draggable>
+      <Draggable position={position} onStop={onControlledDrag}>
+        <div className="box">
+          受控的,只在停止时移动
+          <div>
+            <a href="#" onClick={onChangeXPos}>控制 x ({position.x})</a>
+          </div>
+          <div>
+            <a href="#" onClick={onChangeYPos}>控制 y ({position.y})</a>
+          </div>
         </div>
       </Draggable>
     </>

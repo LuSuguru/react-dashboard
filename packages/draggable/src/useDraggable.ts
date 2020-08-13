@@ -111,8 +111,6 @@ export default function useDraggable(nodeRef: RefObject<HTMLElement>, props: Pro
 
     const coreEvent = createCoreData(nodeRef.current, x, y)
 
-    console.log(coreEvent.x, coreEvent.y)
-
     const shouldUpdate = props.onDrag?.(e, coreEvent)
     if (shouldUpdate === false || !mounted.current) {
       onMouseUp(new MouseEvent('mouseup') as any)

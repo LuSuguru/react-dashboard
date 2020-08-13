@@ -221,34 +221,21 @@ function Draggable(props: Props) {
 
     setDragging(false)
     setSlack({ slackX: 0, slackY: 0 })
-
-    // TODO:受控组件,貌似会有问题
-    if (controlled) {
-      return
-    }
-
-    // setState({})
   }
 
   const draggable = !controlled || dragging
   const currentPosition = position || defaultPosition
-
-  console.log(state)
 
   const tranformOpts: Position = {
     x: canDrag(axis, 'x') && draggable ? state.x : currentPosition.x,
     y: canDrag(axis, 'y') && draggable ? state.y : currentPosition.y
   }
 
-  console.log(tranformOpts)
-
   const style = createTranslation(tranformOpts, positionOffset)
   const className = classnames(children.props.className || '', defaultClassName, {
     [defaultClassNameDragging]: dragging,
     [defaultClassNameDragged]: dragged
   })
-
-  console.log(style)
 
   return cloneElement(React.Children.only(children), {
     ref: nodeRef,
