@@ -1,8 +1,6 @@
 import React, { useState, MouseEvent, forwardRef } from 'react'
 import Draggable from 'draggable/index'
 
-import './style.less'
-
 const Box = forwardRef((props, ref) => <div className="box" ref={ref} {...props}>有包裹层</div>)
 
 function DraggableExample() {
@@ -42,7 +40,7 @@ function DraggableExample() {
   }
 
   return (
-    <>
+    <div className="layoutRoot">
       <Draggable position={position} onStop={onControlledDrag}>
         <Box />
       </Draggable>
@@ -153,7 +151,7 @@ function DraggableExample() {
           </div>
         </div>
       </Draggable>
-    </>
+    </div>
   )
 }
 

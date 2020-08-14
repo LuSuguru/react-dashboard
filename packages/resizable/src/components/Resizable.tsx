@@ -1,4 +1,4 @@
-import React, { cloneElement, ReactElement, CSSProperties, RefObject, MouseEvent, useState, memo } from 'react'
+import React, { cloneElement, ReactElement, CSSProperties, MouseEvent, useState, memo } from 'react'
 import { DraggableCoreProps } from 'draggable/src/useDraggable'
 import { DraggableData } from 'draggable/src/types'
 import classnames from 'clsx'
@@ -11,31 +11,21 @@ export interface ResizableProps extends Omit<ResizeHandleProps, 'direction' | 'r
   children: ReactElement
   className?: string
   style?: CSSProperties
-  handle?: (resizeHandle: Direction, ref: RefObject<any>) => ReactElement | ReactElement
   resizeHandles?: Direction[]
   draggableOpts?: DraggableCoreProps
   transformScale?: number
   width: number
   height: number
-  lockAspectRadio?: boolean
+  lockAspectRatio?: boolean
   minConstraints?: [number, number]
   maxConstraints?: [number, number]
   onResizeStart?: (e: MouseEvent<HTMLElement>, data: ResizeData) => any
-  onResize: (e: MouseEvent<HTMLElement>, data: ResizeData) => any
+  onResize?: (e: MouseEvent<HTMLElement>, data: ResizeData) => any
   onResizeStop?: (e: MouseEvent<HTMLElement>, data: ResizeData) => any
 }
 
-const defaultProps: Partial<ResizableProps> = {
-  axis: 'both',
-  resizeHandles: ['se'],
-  transformScale: 1,
-  lockAspectRadio: false,
-  minConstraints: [20, 20],
-  maxConstraints: [Infinity, Infinity]
-}
-
 function Resizable(props: ResizableProps) {
-  const { children, className, style, resizeHandles, draggableOpts, handle, transformScale, axis, lockAspectRadio, minConstraints, maxConstraints } = { ...defaultProps, ...props }
+  const { children, className, style, resizeHandles = ['se'], draggableOpts, handle, transformScale = 1, axis = 'both', lockAspectRatio, minConstraints = [20, 20], maxConstraints = [Infinity, Infinity] } = props
   const [slack, setSlack] = useState({
     slackW: 0,
     slackH: 0
@@ -47,7 +37,7 @@ function Resizable(props: ResizableProps) {
       return [width, height]
     }
 
-    if (lockAspectRadio) {
+    if (lockAspectRatio) {
       if (height === props.height) { // 东西方向
         const ratio = props.width / props.height
         height = width / ratio
@@ -71,8 +61,8 @@ function Resizable(props: ResizableProps) {
     }
 
     if (max) {
-      width = Math.min(min[0], width)
-      height = Math.min(min[1], height)
+      width = Math.min(max[0], width)
+      height = Math.min(max[1], height)
     }
 
     slackW += (oldW - width)
@@ -93,10 +83,10 @@ function Resizable(props: ResizableProps) {
     const canDragY = ['both', 'y'].includes(axis) && !['e', 'w'].includes(direction)
 
     // 西和北坐标距离是负的，需要反过来
-    if (canDragX && axis[axis.length - 1] === 'w') {
+    if (canDragX && direction[direction.length - 1] === 'w') {
       deltaX = -deltaX
     }
-    if (canDragY && axis[0] === 'n') {
+    if (canDragY && direction[0] === 'n') {
       deltaY = -deltaY
     }
 
@@ -131,9 +121,10 @@ function Resizable(props: ResizableProps) {
     className: classnames(children.props.className, className, 'react-resizable'),
     style: { ...children.props.style, ...style },
     children: [
-      ...children.props.children,
+      ...Array.isArray(children.props.children) ? children.props.children : [children.props.children],
       ...resizeHandles.map(direction => (
         <ResizeHandle
+          key={direction}
           draggableOpts={draggableOpts}
           direction={direction}
           handle={handle}

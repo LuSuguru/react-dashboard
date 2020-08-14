@@ -9,7 +9,8 @@ module.exports = {
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '../src'),
-      draggable: path.resolve(__dirname, '../../packages/draggable/src')
+      draggable: path.resolve(__dirname, '../../packages/draggable/src'),
+      resizable: path.resolve(__dirname, '../../packages/resizable/src')
     },
     extensions: ['.ts', '.tsx', '.js', '.jsx']
   },
@@ -30,6 +31,7 @@ module.exports = {
             }],
             include: [
               path.resolve(__dirname, '../../packages/draggable/src'),
+              path.resolve(__dirname, '../../packages/resizable/src'),
               path.resolve(__dirname, '../src')
             ]
           },

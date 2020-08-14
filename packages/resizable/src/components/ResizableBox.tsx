@@ -8,7 +8,7 @@ function ResizableBox(props: ResizableProps) {
     height: props.height
   })
   const {
-    axis, draggableOpts, handle, resizeHandles, transformScale, lockAspectRadio, minConstraints, maxConstraints,
+    axis, draggableOpts, handle, resizeHandles, transformScale, lockAspectRatio, minConstraints, maxConstraints,
     width: propsWidth,
     height: propsHeight,
     onResize: propsOnResize,
@@ -37,7 +37,7 @@ function ResizableBox(props: ResizableProps) {
         handle,
         resizeHandles,
         transformScale,
-        lockAspectRadio,
+        lockAspectRatio,
         minConstraints,
         maxConstraints,
         onResizeStart,
