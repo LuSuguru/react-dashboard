@@ -2,12 +2,21 @@
   "name": "draggable",
   "version": "0.0.1",
   "description": "",
-  "main": "./src/index.tsx",
-  "types": "./src/index.tsx",
+  "main": "./lib/index.js",
+  "types": "./es/index.js",
+  "typings": "./es/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "father-build"
   },
   "author": "",
   "license": "ISC",
-  "gitHead": "227e3a815630a9d56ba08db434a437341c0ba596"
+  "gitHead": "227e3a815630a9d56ba08db434a437341c0ba596",
+  "dependencies": {
+    "@babel/runtime": "^7.11.2"
+  },
+  "peerDependencies": {
+    "clsx": "^1.1.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  }
 }

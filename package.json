@@ -6,6 +6,7 @@
     "@types/react-dom": "^16.9.8",
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^3.8.0",
+    "clsx": "^1.1.1",
     "eslint": "^7.6.0",
     "eslint-config-airbnb": "^18.2.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
@@ -19,9 +20,7 @@
     "lerna": "^3.22.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "typescript": "^3.9.7"
-  },
-  "dependencies": {
-    "clsx": "^1.1.1"
+    "typescript": "^3.9.7",
+    "@babel/runtime": "^7.11.2"
   }
 }

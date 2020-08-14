@@ -1,7 +1,5 @@
 import React, { memo, useRef, RefObject, ReactElement, MouseEvent } from 'react'
-import { useDraggable } from 'draggable'
-import { DraggableCoreProps } from 'draggable/src/useDraggable'
-import { DraggableData } from 'draggable/src/types'
+import { useDraggable, DraggableCoreProps, DraggableData } from 'draggable'
 
 import { Direction } from '../type'
 

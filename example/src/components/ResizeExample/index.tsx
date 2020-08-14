@@ -45,11 +45,11 @@ export default function () {
         <ResizableBox className="box" width={200} height={200} draggableOpts={{ grid: [25, 25] }}>
           <span className="text">每次固定25px</span>
         </ResizableBox>
-        <ResizableBox className="box" width={200} height={200} minConstraints={[150, 150]} maxConstraints={[500, 300]}>
-          <span className="text">最小150*150，最大500*300</span>
-        </ResizableBox>
         <ResizableBox className="box" width={200} height={200} lockAspectRatio>
           <span className="text">锁了长宽比</span>
+        </ResizableBox>
+        <ResizableBox className="box" width={200} height={200} minConstraints={[150, 150]} maxConstraints={[500, 300]}>
+          <span className="text">最小150*150，最大500*300</span>
         </ResizableBox>
         <ResizableBox className="box" width={200} height={120} lockAspectRatio>
           <span className="text">锁长宽比</span>

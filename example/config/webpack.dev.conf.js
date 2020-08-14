@@ -66,6 +66,7 @@ module.exports = merge(baseWebpackConfig, {
     ],
     publicPath: `http://localhost:${utils.port}/`,
     clientLogLevel: 'none',
+    historyApiFallback: true,
     hot: true,
     stats: {
       all: false,

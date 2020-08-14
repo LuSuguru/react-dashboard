@@ -1,6 +1,5 @@
 import React, { cloneElement, ReactElement, CSSProperties, MouseEvent, useState, memo } from 'react'
-import { DraggableCoreProps } from 'draggable/src/useDraggable'
-import { DraggableData } from 'draggable/src/types'
+import { DraggableCoreProps, DraggableData } from 'draggable'
 import classnames from 'clsx'
 
 import { Axis, Direction, ResizeData } from '../type'
@@ -51,6 +50,7 @@ function Resizable(props: ResizableProps) {
 
     const [oldW, oldH] = [width, height]
 
+    // 做缓冲
     let { slackW, slackH } = slack
     width += slackW
     height += slackH
@@ -67,6 +67,8 @@ function Resizable(props: ResizableProps) {
 
     slackW += (oldW - width)
     slackH += (oldH - height)
+
+    console.log(slackW, slackH)
 
     if (slackW !== slack.slackW || slackH !== slack.slackH) {
       setSlack({ slackW, slackH })

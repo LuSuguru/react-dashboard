@@ -1,5 +1,5 @@
 import React, { memo, MouseEvent, useEffect, useState } from 'react'
-import Resizable, { ResizableProps } from './resizable'
+import Resizable, { ResizableProps } from './Resizable'
 import { ResizeData } from '../type'
 
 function ResizableBox(props: ResizableProps) {

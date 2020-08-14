@@ -3,3 +3,9 @@
 /es
 /lib
 node_modules
+
+**/dist
+**/docs-dist
+**/es
+**/lib
+**/build
