@@ -1,5 +1,5 @@
 import React, { useState, forwardRef } from 'react'
-import ResizableBox, { Resizable } from 'resizable/index'
+import ResizableBox, { Resizable } from 'resizable'
 import './style.less'
 
 export default function () {

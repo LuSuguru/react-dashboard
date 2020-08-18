@@ -24,12 +24,6 @@
     "paths": {
       "@/*": [
         "src/*"
-      ],
-      "draggable/*": [
-        "../packages/draggable/src/*"
-      ],
-      "resizable/*": [
-        "../packages/resizable/src/*"
       ]
     }
   },

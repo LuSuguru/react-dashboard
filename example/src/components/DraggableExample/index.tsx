@@ -1,5 +1,5 @@
 import React, { useState, MouseEvent, forwardRef } from 'react'
-import Draggable from 'draggable/index'
+import Draggable from 'draggable'
 
 const Box = forwardRef((props, ref) => <div className="box" ref={ref} {...props}>有包裹层</div>)
 
