@@ -230,4 +230,4 @@ function Draggable(props: Props) {
 
 export default Draggable
 
-export { useDraggable, DraggableData }
+export { useDraggable, DraggableData, DraggableCoreProps }
