@@ -1,8 +1,8 @@
-import React, { memo, MouseEvent, useEffect, useState } from 'react'
+import React, { memo, MouseEvent, useEffect, useState, FC } from 'react'
 import Resizable, { ResizableProps } from './Resizable'
 import { ResizeData } from '../type'
 
-function ResizableBox(props: ResizableProps) {
+const ResizableBox: FC<ResizableProps> = (props) => {
   const [state, setState] = useState({
     width: props.width,
     height: props.height

@@ -1,4 +1,4 @@
-import React, { ReactElement, cloneElement, useRef, useState, useEffect, MouseEvent } from 'react'
+import React, { ReactElement, cloneElement, useRef, useState, useEffect, MouseEvent, FC } from 'react'
 import classnames from 'clsx'
 
 import useDraggable, { DraggableCoreProps, defaultCoreProps } from './useDraggable'
@@ -17,17 +17,6 @@ interface Props extends DraggableCoreProps {
   defaultClassName?: string
   defaultClassNameDragging?: string
   defaultClassNameDragged?: string
-}
-
-const defaultProps: Partial<Props> = {
-  ...defaultCoreProps,
-  axis: 'both',
-  bounds: undefined,
-  defaultClassName: 'draggable',
-  defaultClassNameDragging: 'draggable-dragging',
-  defaultClassNameDragged: 'draggable-dragged',
-  defaultPosition: { x: 0, y: 0 },
-  position: null
 }
 
 function canDrag(axis: Axis, targetAxis: Axis) {
@@ -88,7 +77,7 @@ function createTranslation(position: Position, positionOffset: PositionOffset) {
   return { [browserPrefixToKey('transform', browserPrefix)]: getTranslation(position, positionOffset, 'px') }
 }
 
-function Draggable(props: Props) {
+const Draggable: FC<Props> = (props) => {
   const {
     axis,
     bounds,
@@ -100,7 +89,7 @@ function Draggable(props: Props) {
     defaultClassName,
     defaultClassNameDragged,
     defaultClassNameDragging,
-    ...coreProps } = { ...defaultProps, ...props }
+    ...coreProps } = props
 
   const [dragged, setDragged] = useState(false)
   const [dragging, setDragging] = useState(false)
@@ -226,6 +215,17 @@ function Draggable(props: Props) {
     onMouseDown,
     onMouseUp
   })
+}
+
+Draggable.defaultProps = {
+  ...defaultCoreProps,
+  axis: 'both',
+  bounds: undefined,
+  defaultClassName: 'draggable',
+  defaultClassNameDragging: 'draggable-dragging',
+  defaultClassNameDragged: 'draggable-dragged',
+  defaultPosition: { x: 0, y: 0 },
+  position: null
 }
 
 export default Draggable

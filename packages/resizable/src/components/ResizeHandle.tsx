@@ -1,7 +1,7 @@
-import React, { memo, useRef, RefObject, ReactElement, MouseEvent } from 'react'
+import React, { memo, useRef, RefObject, ReactElement, MouseEvent, FC } from 'react'
 import { useDraggable, DraggableCoreProps, DraggableData } from 'draggable'
 
-import { Direction } from '../type'
+import { Direction, ResizeData } from '../type'
 
 export type ResizeType = 'onResizeStop' | 'onResizeStart' | 'onResize'
 
@@ -19,7 +19,7 @@ export interface ResizeHandleProps {
   resizeHandler: (resizeType: ResizeType, direction: Direction) => (e: MouseEvent<HTMLElement>, data: DraggableData) => any
 }
 
-function ResizeHandle(props: ResizeHandleProps) {
+const ResizeHandle: FC<ResizeHandleProps> = (props) => {
   const { direction, draggableOpts, handle, resizeHandler } = props
   const nodeRef = useRef(null)
 

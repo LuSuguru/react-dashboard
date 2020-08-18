@@ -1,4 +1,4 @@
-import React, { cloneElement, ReactElement, CSSProperties, MouseEvent, useState, memo } from 'react'
+import React, { cloneElement, ReactElement, CSSProperties, MouseEvent, useState, memo, FC } from 'react'
 import { DraggableCoreProps, DraggableData } from 'draggable'
 import classnames from 'clsx'
 
@@ -23,8 +23,8 @@ export interface ResizableProps extends Omit<ResizeHandleProps, 'direction' | 'r
   onResizeStop?: (e: MouseEvent<HTMLElement>, data: ResizeData) => any
 }
 
-function Resizable(props: ResizableProps) {
-  const { children, className, style, resizeHandles = ['se'], draggableOpts, handle, transformScale = 1, axis = 'both', lockAspectRatio, minConstraints = [20, 20], maxConstraints = [Infinity, Infinity] } = props
+const Resizable: FC<ResizableProps> = (props) => {
+  const { children, className, style, resizeHandles, draggableOpts, handle, transformScale, axis, lockAspectRatio, minConstraints, maxConstraints } = props
   const [slack, setSlack] = useState({
     slackW: 0,
     slackH: 0
@@ -133,6 +133,14 @@ function Resizable(props: ResizableProps) {
           resizeHandler={resizeHandler} />))
     ]
   })
+}
+
+Resizable.defaultProps = {
+  resizeHandles: ['se'],
+  transformScale: 1,
+  axis: 'both',
+  minConstraints: [20, 20],
+  maxConstraints: [Infinity, Infinity]
 }
 
 export default memo(Resizable)
