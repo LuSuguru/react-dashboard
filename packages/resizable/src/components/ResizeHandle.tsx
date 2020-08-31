@@ -1,7 +1,7 @@
 import React, { memo, useRef, RefObject, ReactElement, MouseEvent, FC } from 'react'
 import { useDraggable, DraggableCoreProps, DraggableData } from 'draggable'
 
-import { Direction, ResizeData } from '../type'
+import { Direction } from '../type'
 
 export type ResizeType = 'onResizeStop' | 'onResizeStart' | 'onResize'
 

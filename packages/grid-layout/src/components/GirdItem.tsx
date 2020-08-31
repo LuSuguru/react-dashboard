@@ -1,12 +1,14 @@
-import React, { ReactElement, FC, useState, CSSProperties } from 'react'
+import React, { ReactElement, FC, useState, CSSProperties, MouseEvent } from 'react'
 import classnames from 'clsx'
 import { Resizable } from 'resizable'
+import { ResizeData } from 'resizable/es/type'
+import { ResizableProps } from 'resizable/es/components/Resizable'
 
 import { calcGridItemPosition } from '@/utils/calculate'
-import { PositionParams, Position, Size, Bound } from '../type'
 import { setTransform, setTopLeft, perc } from '@/utils/utils'
+import { PositionParams, Position, Size, Bound } from '@/type'
 
-export interface Props extends PositionParams {
+export interface Props extends PositionParams, Pick<ResizableProps, 'transformScale' | 'onResizeStart' | 'onResizeStop' | 'onResize'> {
   children: ReactElement
   x: number
   y: number
@@ -28,13 +30,12 @@ export interface Props extends PositionParams {
   }
   useCSSTransforms: boolean
   usePercentages: boolean
-  transformScale?: number
   className?: string
   style?: CSSProperties
 }
 
 const GridItem: FC<Props> = (props) => {
-  const { x, y, w, h, minW, minH, maxW, maxH, isDraggable, isResizable, isStatic, useCSSTransforms, usePercentages, droppingPosition, className, style, cols, containerPadding, containerWidth, margin, maxRows, rowHeight } = props
+  const { x, y, w, h, minW, minH, maxW, maxH, isDraggable, isResizable, isStatic, useCSSTransforms, usePercentages, droppingPosition, transformScale, className, style, cols, containerPadding, containerWidth, margin, maxRows, rowHeight } = props
   const positionParams = { cols, containerPadding, containerWidth, margin, maxRows, rowHeight }
 
   const [dragging, setDragging] = useState<Position>(null)
@@ -42,6 +43,16 @@ const GridItem: FC<Props> = (props) => {
 
   const pos = calcGridItemPosition(positionParams, x, y, w, h, { resizing, dragging })
   const child = React.Children.only(props.children)
+
+  const onResizeHandler = (e: MouseEvent<HTMLElement>, data: ResizeData, handleName: 'onResizeStart' | 'onResizeStop' | 'onResize') => {
+    const handler = props[handleName]
+
+    if (!handler) return
+  }
+
+  const onResizeStart: ResizableProps['onResizeStart'] = (e, data) => onResizeHandler(e, data, 'onResizeStart')
+  const onResizeStop: ResizableProps['onResizeStop'] = (e, data) => onResizeHandler(e, data, 'onResizeStop')
+  const onResize: ResizableProps['onResize'] = (e, data) => onResizeHandler(e, data, 'onResize')
 
   function createStyle(pos: Bound): CSSProperties {
     let style: CSSProperties
@@ -62,11 +73,13 @@ const GridItem: FC<Props> = (props) => {
     const maxWidth = calcGridItemPosition(positionParams, 0, 0, cols - x, 0).width
     const mins = calcGridItemPosition(positionParams, 0, 0, minW, minH)
     const maxes = calcGridItemPosition(positionParams, 0, 0, maxW, maxH)
-    const minConstraints = [mins.width, mins.height]
-    const maxConstraints = [
+    const minConstraints: [number, number] = [mins.width, mins.height]
+    const maxConstraints: [number, number] = [
       Math.min(maxes.width, maxWidth),
       Math.max(maxes.height, Infinity)
     ]
+
+    return { minConstraints, maxConstraints }
   }
 
   const newChild = React.cloneElement(child, {
@@ -92,12 +105,15 @@ const GridItem: FC<Props> = (props) => {
 
   return (
     <Resizable
+      {...getMinOrMaxConstraints()}
       draggableOpts={{ disabled: !isResizable }}
       className={isResizable ? undefined : 'react-resizable-hide'}
       width={pos.width}
       height={pos.height}
-
-    >
+      transformScale={transformScale}
+      onResize={onResize}
+      onResizeStart={onResizeStart}
+      onResizeStop={onResizeStop}>
       {newChild}
     </Resizable>
   )

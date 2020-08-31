@@ -68,8 +68,6 @@ const Resizable: FC<ResizableProps> = (props) => {
     slackW += (oldW - width)
     slackH += (oldH - height)
 
-    console.log(slackW, slackH)
-
     if (slackW !== slack.slackW || slackH !== slack.slackH) {
       setSlack({ slackW, slackH })
     }
