@@ -1,9 +1,11 @@
 import { PositionParams, Position, Size, Bound } from '../type'
 
+// 计算每一个 gird col 的 width
 export function calcGirdColWidth({ margin, containerPadding, containerWidth, cols }: PositionParams) {
   return (containerWidth - margin[0] * (cols - 1) - containerPadding[0] * 2) / cols
 }
 
+// 通过 w,h 获得每一个 gitd 的具体 width,height
 export function calcGirdItemWHPx(girdUnits: number, colOrRowSize: number, marginPx: number) {
   if (!Number.isFinite(girdUnits)) return girdUnits
 
@@ -33,4 +35,37 @@ export function calcGridItemPosition(positionParams: PositionParams, x: number, 
   }
 
   return out
+}
+
+export function clacWH(positionParams: PositionParams, width: number, height: number, x: number, y: number) {
+  const { margin, maxRows, cols, rowHeight } = positionParams
+  const colWidth = calcGirdColWidth(positionParams)
+
+  // width = colWidth * w + margin * (w - 1) => w = (width + margin) / (colwidth + margin)
+  let w = Math.round((width + margin[0]) / (colWidth + margin[0]))
+  let h = Math.round((height + margin[1]) / (rowHeight + margin[1]))
+
+  // 限制 w,h 的范围
+  w = clamp(w, 0, cols - x)
+  h = clamp(h, 0, maxRows - y)
+
+  return { w, h }
+}
+
+export function clacXY(positionParams: PositionParams, top: number, left: number, w: number, h: number) {
+  const { margin, cols, rowHeight, maxRows } = positionParams
+  const colWidth = calcGirdColWidth(positionParams)
+
+  // left = colWidth * x + margin * (x + 1) => x = (left - margin) / (colWidth + margin)
+  let x = Math.round((left - margin[0]) / (colWidth + margin[0]))
+  let y = Math.round((top - margin[0]) / (rowHeight + margin[1]))
+
+  x = clamp(x, 0, cols - w)
+  y = clamp(y, 0, maxRows - h)
+
+  return { x, y }
+}
+
+export function clamp(num: number, lowerBound: number, upperBound: number) {
+  return Math.max(Math.min(num, upperBound), lowerBound)
 }

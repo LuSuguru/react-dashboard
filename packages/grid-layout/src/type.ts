@@ -1,3 +1,5 @@
+import { MouseEvent } from 'react'
+
 export interface PositionParams {
   cols: number
   containerWidth: number
@@ -18,3 +20,22 @@ export interface Size {
 }
 
 export type Bound = Partial<Position & Size>
+
+export interface GirdResizeEvent {
+  e: MouseEvent<HTMLElement>
+  node: HTMLElement
+  size: Size
+}
+
+export interface GirdDraggEvent {
+  e: MouseEvent<HTMLElement>
+  node: HTMLElement
+  newPosition: Position
+}
+
+export type GridItemCallback<Data> = (
+  i: string,
+  w: number,
+  h: number,
+  data: Data
+) => void

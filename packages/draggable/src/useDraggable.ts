@@ -1,4 +1,4 @@
-import { MouseEvent as ReactMouseEvent, useState, useEffect, useRef, RefObject } from 'react'
+import { MouseEvent as ReactMouseEvent, useState, useEffect, useRef } from 'react'
 import { isNum } from './utils/utils'
 import { DraggableData } from './types'
 import usePersistFn from './utils/usePersistFn'
@@ -40,11 +40,12 @@ function snapToGrid(gird: [number, number], deltaX: number, deltaY: number) {
   return [x, y]
 }
 
-export default function useDraggable(nodeRef: RefObject<HTMLElement>, props: DraggableCoreProps) {
+export default function useDraggable(props: DraggableCoreProps) {
   const [dragging, setDragging] = useState(false)
   const [{ lastX, lastY }, setLastXY] = useState({ lastX: NaN, lastY: NaN })
 
   const mounted = useRef(false)
+  const nodeRef = useRef<HTMLElement>(null)
 
   const { disabled, handle, cancel, scale, grid, enableUserSelectHack } = { ...defaultCoreProps, ...props }
 
@@ -169,6 +170,7 @@ export default function useDraggable(nodeRef: RefObject<HTMLElement>, props: Dra
 
   return {
     onMouseDown,
-    onMouseUp
+    onMouseUp,
+    nodeRef
   }
 }

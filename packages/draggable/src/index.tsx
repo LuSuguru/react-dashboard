@@ -1,4 +1,4 @@
-import React, { ReactElement, cloneElement, useRef, useState, useEffect, MouseEvent, FC } from 'react'
+import React, { ReactElement, cloneElement, useState, useEffect, MouseEvent, FC } from 'react'
 import classnames from 'clsx'
 
 import useDraggable, { DraggableCoreProps, defaultCoreProps } from './useDraggable'
@@ -102,10 +102,9 @@ const Draggable: FC<Props> = (props) => {
     y: position?.y || defaultPosition?.y
   })
 
-  const nodeRef = useRef<HTMLElement>(null)
   const controlled = !!position
 
-  const { onMouseDown, onMouseUp } = useDraggable(nodeRef, {
+  const { onMouseDown, onMouseUp, nodeRef } = useDraggable({
     ...coreProps,
     onStart,
     onDrag,
