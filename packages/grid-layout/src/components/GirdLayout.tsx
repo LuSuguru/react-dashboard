@@ -47,6 +47,9 @@ interface State {
   mounted: boolean
   droppingPosition: DroppingPosition // 拖拽位置
   droppingDOMNode: ReactElement // 拖拽元素
+  oldLayout: Layout
+  oldDragItem: LayoutItem
+  oldResizeItem: LayoutItem
 }
 
 const layoutClassName = 'react-grid-layout'
@@ -90,10 +93,15 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
     activeDrag: null,
     mounted: false,
     droppingPosition: null,
-    droppingDOMNode: null
+    droppingDOMNode: null,
+    oldDragItem: null,
+    oldLayout: null,
+    oldResizeItem: null
   })
 
   const { activeDrag, mounted, droppingPosition, droppingDOMNode } = state
+
+  const onDragStart = ()
 
   const containerHeight = () => {
     if (!autoSize) return
