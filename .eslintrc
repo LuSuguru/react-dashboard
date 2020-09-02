@@ -114,6 +114,7 @@
     "no-template-curly-in-string": 0,
     "@typescript-eslint/ban-types": 0,
     "react/jsx-props-no-spreading": 0,
-    "no-use-before-define": 0
+    "no-use-before-define": 0,
+    "no-cond-assign": 0
   }
 }

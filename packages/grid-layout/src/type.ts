@@ -33,9 +33,27 @@ export interface GirdDraggEvent {
   newPosition: Position
 }
 
-export type GridItemCallback<Data> = (
-  i: string,
-  w: number,
-  h: number,
-  data: Data
-) => void
+export type GridItemCallback<Data> = (i: string, w: number, h: number, data: Data) => void
+
+export interface LayoutItem {
+  w: number
+  h: number
+  x: number
+  y: number
+  i: string
+
+  minW?: number
+  minH?: number
+  maxW?: number
+  maxH?: number
+
+  moved?: boolean
+  isStatic?: boolean
+  isDraggable?: boolean
+  isResizable?: boolean
+  isBounded?: boolean
+}
+
+export type Layout = readonly LayoutItem[]
+
+export type CompactType = 'horizontal' | 'vertical'

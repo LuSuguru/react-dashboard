@@ -9,8 +9,11 @@ import { calcGridItemPosition, clacWH, clamp, clacXY, calcGirdItemWHPx, calcGird
 import { setTransform, setTopLeft, perc } from '@/utils/utils'
 import { PositionParams, Position, Size, Bound, GridItemCallback, GirdResizeEvent, GirdDraggEvent } from '@/type'
 
-export interface Props extends PositionParams {
+export interface GirdItemProps extends PositionParams {
   children: ReactElement
+  className?: string
+  style?: CSSProperties
+
   x: number
   y: number
   w: number
@@ -40,9 +43,6 @@ export interface Props extends PositionParams {
   usePercentages: boolean
   transformScale: number
 
-  className?: string
-  style?: CSSProperties
-
   onResize?: GridItemCallback<GirdResizeEvent>
   onResizeStart?: GridItemCallback<GirdResizeEvent>
   onResizeStop?: GridItemCallback<GirdResizeEvent>
@@ -52,7 +52,7 @@ export interface Props extends PositionParams {
   onDragStop?: GridItemCallback<GirdDraggEvent>
 }
 
-const GridItem: FC<Props> = (props) => {
+const GridItem: FC<GirdItemProps> = (props) => {
   const { x, y, w, h, i, minW, minH, maxW, maxH, isDraggable, isResizable, isBounded, isStatic, useCSSTransforms, usePercentages, droppingPosition, transformScale, className, style, cols, containerPadding, containerWidth, margin, maxRows, rowHeight } = props
   const positionParams = { cols, containerPadding, containerWidth, margin, maxRows, rowHeight }
 
