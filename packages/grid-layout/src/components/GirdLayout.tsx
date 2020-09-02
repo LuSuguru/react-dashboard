@@ -101,7 +101,9 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
 
   const { activeDrag, mounted, droppingPosition, droppingDOMNode } = state
 
-  const onDragStart = ()
+  const onDragStart = () => {
+
+  }
 
   const containerHeight = () => {
     if (!autoSize) return
