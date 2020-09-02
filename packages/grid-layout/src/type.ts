@@ -1,4 +1,4 @@
-import { MouseEvent } from 'react'
+import { MouseEvent, DragEvent } from 'react'
 
 export interface PositionParams {
   cols: number
@@ -17,6 +17,10 @@ export interface Position {
 export interface Size {
   width: number
   height: number
+}
+
+export interface DroppingPosition extends Position {
+  e: DragEvent
 }
 
 export type Bound = Partial<Position & Size>

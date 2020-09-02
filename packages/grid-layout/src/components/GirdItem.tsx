@@ -7,7 +7,7 @@ import { ResizableProps } from 'resizable/es/components/Resizable'
 
 import { calcGridItemPosition, clacWH, clamp, clacXY, calcGirdItemWHPx, calcGirdColWidth } from '@/utils/calculate'
 import { setTransform, setTopLeft, perc } from '@/utils/utils'
-import { PositionParams, Position, Size, Bound, GridItemCallback, GirdResizeEvent, GirdDraggEvent } from '@/type'
+import { PositionParams, Position, Size, Bound, GridItemCallback, GirdResizeEvent, GirdDraggEvent, DroppingPosition } from '@/type'
 
 export interface GirdItemProps extends PositionParams {
   children: ReactElement
@@ -31,16 +31,12 @@ export interface GirdItemProps extends PositionParams {
   isDraggable: boolean
   isResizable: boolean
   isBounded: boolean
-  isStatic: boolean
+  isStatic?: boolean
 
-  droppingPosition: {
-    e: any
-    left: number
-    top: number
-  }
+  droppingPosition?: DroppingPosition
 
   useCSSTransforms: boolean
-  usePercentages: boolean
+  usePercentages?: boolean
   transformScale: number
 
   onResize?: GridItemCallback<GirdResizeEvent>

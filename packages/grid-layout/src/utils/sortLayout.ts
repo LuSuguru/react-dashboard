@@ -1,6 +1,7 @@
 import { Layout, CompactType } from '@/type'
 
-function sortLayoutItemsByRowCol(layout: Layout) {
+// 优先排 y，再排 x
+function sortLayoutItemsByRowCol(layout: Layout): Layout {
   return [...layout].sort((a, b) => {
     if (a.y > b.y || (a.y === b.y && a.x > b.x)) {
       return 1
@@ -14,7 +15,8 @@ function sortLayoutItemsByRowCol(layout: Layout) {
   })
 }
 
-function sortLayoutItemsByColRow(layout: Layout) {
+// 优先排 x, 再排 y
+function sortLayoutItemsByColRow(layout: Layout): Layout {
   return [...layout].sort((a, b) => {
     if (a.x > b.x || (a.x === b.x && a.y > b.y)) {
       return 1
