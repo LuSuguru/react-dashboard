@@ -49,7 +49,7 @@ export interface GirdItemProps extends PositionParams {
 }
 
 const GridItem: FC<GirdItemProps> = (props) => {
-  const { x, y, w, h, i, minW, minH, maxW, maxH, isDraggable, isResizable, isBounded, isStatic, useCSSTransforms, usePercentages, droppingPosition, transformScale, className, style, cols, containerPadding, containerWidth, margin, maxRows, rowHeight } = props
+  const { cols, containerPadding, containerWidth, margin, maxRows, rowHeight } = props
   const positionParams = { cols, containerPadding, containerWidth, margin, maxRows, rowHeight }
 
   const [dragging, setDragging] = useState<Position>(null)
@@ -58,7 +58,7 @@ const GridItem: FC<GirdItemProps> = (props) => {
   const pos = calcGridItemPosition(positionParams, x, y, w, h, { resizing, dragging })
 
   const onDragStart: DraggableCoreProps['onStart'] = (e, { node }) => {
-    const { onDragStart } = props
+    const { i, transformScale, onDragStart } = props
     if (!onDragStart) return
 
     const newPosition: Position = { top: 0, left: 0 }
@@ -84,7 +84,7 @@ const GridItem: FC<GirdItemProps> = (props) => {
   }
 
   const onDrag: DraggableCoreProps['onDrag'] = (e, { node, deltaX, deltaY }) => {
-    const { onDrag } = props
+    const { i, w, h, transformScale, isBounded, rowHeight, margin, containerWidth, onDrag } = props
     if (!onDrag) return
 
     deltaX /= transformScale
@@ -118,7 +118,7 @@ const GridItem: FC<GirdItemProps> = (props) => {
   }
 
   const onDragStop: DraggableCoreProps['onStop'] = (e, { node }) => {
-    const { onDragStop } = props
+    const { i, w, h, onDragStop } = props
     if (!onDragStop) return
 
     if (!dragging) {
@@ -133,6 +133,7 @@ const GridItem: FC<GirdItemProps> = (props) => {
   }
 
   const onResizeHandler = (e: MouseEvent<HTMLElement>, { node, size }: ResizeData, handlerName: 'onResizeStart' | 'onResizeStop' | 'onResize') => {
+    const { i, x, cols, minH } = props
     const handler = props[handlerName]
     if (!handler) return
 
@@ -154,20 +155,21 @@ const GridItem: FC<GirdItemProps> = (props) => {
   const onResize: ResizableProps['onResize'] = (e, data) => onResizeHandler(e, data, 'onResize')
 
   const { nodeRef, onMouseDown, onMouseUp } = useDraggable({
-    disabled: isDraggable,
+    disabled: props.isDraggable,
     onStart: onDragStart,
     onDrag,
     onStop: onDragStop,
     handle: props.handle,
     cancel: `.react-resizable-handle ${props.cancel ? `,${props.cancel}` : ''}`,
-    scale: transformScale
+    scale: props.transformScale
   })
 
   useEffect(() => {
+    const { droppingPosition } = props
     if (!droppingPosition) return
 
     if (!dragging) {
-      onDragStart(droppingPosition?.e, {
+      onDragStart(droppingPosition?.e as any, {
         node: nodeRef.current,
         deltaX: droppingPosition.left,
         deltaY: droppingPosition.top
@@ -176,15 +178,17 @@ const GridItem: FC<GirdItemProps> = (props) => {
       const deltaX = droppingPosition.left - dragging.left
       const deltaY = droppingPosition.top - dragging.top
 
-      onDrag(droppingPosition?.e, {
+      onDrag(droppingPosition?.e as any, {
         node: nodeRef.current,
         deltaX,
         deltaY
       } as any)
     }
-  }, [droppingPosition?.left, droppingPosition?.top])
+  }, [props.droppingPosition?.left, props.droppingPosition?.top])
 
   return useMemo(() => {
+    const { x, minW, minH, maxW, maxH, useCSSTransforms, usePercentages } = props
+
     const createStyle = (pos: Bound) => {
       let style: CSSProperties
       if (useCSSTransforms) {
@@ -219,13 +223,13 @@ const GridItem: FC<GirdItemProps> = (props) => {
       classNames: classnames(
         'react-grid-item',
         child.props.className,
-        className,
+        props.className,
         {
-          isStatic,
+          isStatic: props.isStatic,
           resizing: !!resizing,
-          'react-draggable': isDraggable,
+          'react-draggable': props.isDraggable,
           'react-draggable-dragging': !!dragging,
-          dropping: !!droppingPosition,
+          dropping: !!props.droppingPosition,
           cssTransforms: useCSSTransforms
         }
       ),
@@ -233,7 +237,7 @@ const GridItem: FC<GirdItemProps> = (props) => {
       onMouseDown,
       onMouseUp,
       style: {
-        ...style,
+        ...props.style,
         ...child.props.style,
         ...createStyle(pos)
       }
@@ -242,18 +246,18 @@ const GridItem: FC<GirdItemProps> = (props) => {
     return (
       <Resizable
         {...getMinOrMaxConstraints()}
-        draggableOpts={{ disabled: !isResizable }}
-        className={isResizable ? undefined : 'react-resizable-hide'}
+        draggableOpts={{ disabled: !props.isResizable }}
+        className={props.isResizable ? undefined : 'react-resizable-hide'}
         width={pos.width}
         height={pos.height}
-        transformScale={transformScale}
+        transformScale={props.transformScale}
         onResize={onResize}
         onResizeStart={onResizeStart}
         onResizeStop={onResizeStop}>
         {newChild}
       </Resizable>
     )
-  }, [pos.height, pos.width, pos.left, pos.top, useCSSTransforms])
+  }, [pos.height, pos.width, pos.left, pos.top, props.useCSSTransforms])
 }
 
 GridItem.defaultProps = {

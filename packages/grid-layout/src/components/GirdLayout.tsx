@@ -2,14 +2,14 @@
 import React, { memo, FC, RefObject, Children, ReactElement, ReactChild, ReactNode } from 'react'
 import classnames from 'clsx'
 
-import { getBottom, cloneLayoutItem } from '@/utils/utils'
+import { getBottom, cloneLayoutItem, getLayoutItem, isEqual } from '@/utils/utils'
 import useStates from '@/utils/useStates'
 import { Layout, CompactType, LayoutItem, DroppingPosition } from '@/type'
 import { correctBounds, compact } from '@/utils/collision'
 
 import GirdItem, { GirdItemProps } from './GirdItem'
 import Placeholder from './Placeholder'
-import GridItem from './GirdItem'
+import { DraggableCoreProps } from 'draggable'
 
 type ExtendsProps = Partial<Pick<GirdItemProps,
   | 'children'
@@ -26,11 +26,14 @@ type ExtendsProps = Partial<Pick<GirdItemProps,
   | 'useCSSTransforms'
   | 'transformScale'>>
 
+type EventCallbck = (layout: Layout, oldItem: LayoutItem, newItem: LayoutItem, placeholder: LayoutItem, e: MouseEvent<HTMLElement>, node: HTMLElement) => void
+
 interface GirdLayoutProps extends ExtendsProps {
   width: number
   layout: Layout
   autoSize?: boolean
   isDroppable?: boolean // 是否开启拖拽
+  preventCollision: boolean // 是否阻止碰撞
 
   vertialCompact?: boolean
   compactType?: CompactType
@@ -39,6 +42,14 @@ interface GirdLayoutProps extends ExtendsProps {
   draggableHandle?: string
 
   innerRef?: RefObject<HTMLDivElement>
+
+  onDragStart: EventCallbck
+  onDrag: EventCallbck
+  onDragStop: EventCallbck
+  onResize: EventCallbck
+  onResizeStart: EventCallbck
+  onResizeStop: EventCallbck
+  onLayoutChange: (newLayout: Layout) => void
 }
 
 interface State {
@@ -87,9 +98,8 @@ function syncLayoutWithChildren(initialLayout: Layout = [], children: ReactChild
 }
 
 const GirdLayout: FC<GirdLayoutProps> = (props) => {
-  const { width, layout, autoSize, children, className, style, innerRef, containerPadding, margin, rowHeight, cols, maxRows, vertialCompact, compactType, useCSSTransforms, transformScale, isBounded, isDroppable, draggableHandle, draggableCancel } = props
   const [state, setState] = useStates<State>({
-    layout: syncLayoutWithChildren(layout, children, cols, getCompactType(vertialCompact, compactType)),
+    layout: syncLayoutWithChildren(props.layout, props.children, props.cols, getCompactType(props.vertialCompact, props.compactType)),
     activeDrag: null,
     mounted: false,
     droppingPosition: null,
@@ -99,14 +109,85 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
     oldResizeItem: null
   })
 
-  const { activeDrag, mounted, droppingPosition, droppingDOMNode } = state
+  const onLayoutMaybeChanged = (newLayout: Layout, oldLayout: Layout) => {
+    if (!oldLayout) {
+      oldLayout = state.layout
+    }
 
-  const onDragStart = () => {
+    if (!isEqual(oldLayout, newLayout)) {
+      props.onLayoutChange(newLayout)
+    }
+  }
 
+  // 拖拽移动开始
+  const onDragStart: GirdItemProps['onDragStart'] = (i, _x, _y, { e, node }) => {
+    const { layout } = state
+    const l = getLayoutItem(layout, i)
+    if (!l) return
+
+    setState({
+      oldDragItem: cloneLayoutItem(l),
+      oldLayout: layout
+    })
+
+    props.onDragStart(layout, l, l, null, e, node)
+  }
+
+  const onDrag: GirdItemProps['onDrag'] = (i, x, y, { e, node }) => {
+    const { cols, preventCollision, vertialCompact, compactType } = props
+    const { oldDragItem } = state
+    let { layout } = state
+
+    const l = getLayoutItem(layout, i)
+    if (!l) return
+
+    const placeholder = {
+      w: l.w,
+      h: l.h,
+      x: l.x,
+      y: l.y,
+      i
+    }
+
+    const partCompactType = getCompactType(vertialCompact, compactType)
+    layout = moveElement(layout, l, x, y, true, preventCollision, partCompactType, cols)
+    const newLayout = compact(layout, partCompactType, cols)
+
+    props.onDrag(layout, oldDragItem, l, placeholder, e, node)
+    setState({
+      layout: newLayout,
+      activeDrag: placeholder
+    })
+  }
+
+  const onDragStop: GirdItemProps['onDragStop'] = (i, x, y, { e, node }) => {
+    const { cols, preventCollision, vertialCompact, compactType } = props
+    const { activeDrag, oldDragItem, oldLayout } = state
+    let { layout } = state
+    if (!activeDrag) return
+
+    const l = getLayoutItem(layout, i)
+    if (!l) return
+
+    const partCompactType = getCompactType(vertialCompact, compactType)
+    layout = moveElement(layout, l, x, y, true, preventCollision, partCompactType, cols)
+    const newLayout = compact(layout, partCompactType, cols)
+
+    props.onDragStop(layout, oldDragItem, l, null, e, node)
+    setState({
+      layout: newLayout,
+      activeDrag: null,
+      oldDragItem: null,
+      oldLayout: null
+    })
+
+    onLayoutMaybeChanged(newLayout, oldLayout)
   }
 
   const containerHeight = () => {
+    const { autoSize, containerPadding, margin, rowHeight } = props
     if (!autoSize) return
+
     const row = getBottom(state.layout)
     const containerPaddingY = containerPadding ? containerPadding[1] : margin[1]
 
@@ -114,8 +195,11 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
   }
 
   const processGridItem = (child: ReactElement, isDroppingItem = false) => {
+    const { isBounded, width, cols, margin, containerPadding, maxRows, rowHeight, draggableCancel, draggableHandle, useCSSTransforms, transformScale } = props
+    const { mounted, droppingPosition, layout } = state
+
     if (!child || !child.key) return
-    const l = state.layout.find(({ i }) => i === child.key + '')
+    const l = getLayoutItem(layout, child.key + '')
     if (!l) return
 
     const draggable = typeof l.isDraggable === 'boolean'
@@ -128,7 +212,7 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
     const bounded = draggable && isBounded && l.isBounded !== false
 
     return (
-      <GridItem
+      <GirdItem
         containerWidth={width}
         cols={cols}
         margin={margin}
@@ -161,9 +245,12 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
         onResize={onResize}
         onResizeStop={onResizeStop}>
         {child}
-      </GridItem>
+      </GirdItem>
     )
   }
+
+  const { innerRef, className, style, children, isDroppable, width, cols, margin, containerPadding, rowHeight, maxRows, useCSSTransforms, transformScale } = props
+  const { droppingDOMNode, activeDrag } = state
 
   return (
     <div
@@ -206,6 +293,7 @@ GirdLayout.defaultProps = {
   isDraggable: true,
   isResizable: true,
   isDroppable: false,
+  preventCollision: false,
   useCSSTransforms: true,
   transformScale: 1,
   vertialCompact: true,

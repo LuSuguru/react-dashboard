@@ -61,3 +61,11 @@ export function getBottom(layout: Layout) {
 
   return max
 }
+
+export function getLayoutItem(layout: Layout, i: string) {
+  return layout.find(layout => i === layout.i)
+}
+
+export function isEqual<T>(oldObj: T, newObj: T) {
+  return JSON.stringify(oldObj) === JSON.stringify(newObj)
+}
