@@ -18,6 +18,11 @@ function getFirstCollision(layout: Layout, layoutItem: LayoutItem) {
   return layout.find(l => isCollides(l, layoutItem))
 }
 
+// 获取全部碰撞的元素
+export function getAllCollisions(layout: Layout, layoutItem: LayoutItem) {
+  return layout.filter(l => isCollides(l, layoutItem))
+}
+
 function resolveCompactionCollision(layout: Layout, item: LayoutItem, movetoCoord: number, axis: 'x' | 'y') {
   const sizeMap = { x: 'w', y: 'h' }
   const sizeProp = sizeMap[axis]
@@ -95,8 +100,8 @@ export function compact(layout: Layout, compactType: CompactType, cols: number):
   return out
 }
 
-// 收集 静态的 和碰撞到边的 item
-export function correctBounds(layout: Layout, { cols }: { cols: number }): Layout {
+// 处理静态 item 和 超过边界的情况
+export function correctBounds(layout: Layout, cols: number): Layout {
   const collidesWith = layout.filter(i => i.isStatic)
 
   layout.forEach(l => {
@@ -114,7 +119,7 @@ export function correctBounds(layout: Layout, { cols }: { cols: number }): Layou
     if (!l.isStatic) {
       collidesWith.push(l)
     } else {
-      // 如果与其他 item 有碰撞，则往下移动
+      // 如果当前的静态 item 与其他 item 有碰撞，则往下移动，直到无碰撞
       while (getFirstCollision(collidesWith, l)) {
         l.y++
       }

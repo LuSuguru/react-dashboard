@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/indent */
-import React, { memo, FC, RefObject, Children, ReactElement, ReactChild, ReactNode } from 'react'
+import React, { memo, FC, RefObject, Children, ReactElement, ReactChild, MouseEvent } from 'react'
 import classnames from 'clsx'
 
 import { getBottom, cloneLayoutItem, getLayoutItem, isEqual } from '@/utils/utils'
 import useStates from '@/utils/useStates'
 import { Layout, CompactType, LayoutItem, DroppingPosition } from '@/type'
-import { correctBounds, compact } from '@/utils/collision'
+import { correctBounds, compact, getAllCollisions } from '@/utils/collision'
 
 import GirdItem, { GirdItemProps } from './GirdItem'
 import Placeholder from './Placeholder'
-import { DraggableCoreProps } from 'draggable'
 
 type ExtendsProps = Partial<Pick<GirdItemProps,
   | 'children'
@@ -72,6 +71,7 @@ function syncLayoutWithChildren(initialLayout: Layout = [], children: ReactChild
   const layout: LayoutItem[] = []
 
   Children.forEach(children, (child: ReactElement, index: number) => {
+    // 获取 layoutItem 从 layout props 或者 child 的 data-grid 上
     const exists = initialLayout.find(({ i }) => i === child.key + '')
 
     if (exists) {
@@ -93,7 +93,7 @@ function syncLayoutWithChildren(initialLayout: Layout = [], children: ReactChild
     }
   })
 
-  const correctedLayout = correctBounds(layout, { cols })
+  const correctedLayout = correctBounds(layout, cols)
   return compact(correctedLayout, compactType, cols)
 }
 
@@ -178,6 +178,85 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
       layout: newLayout,
       activeDrag: null,
       oldDragItem: null,
+      oldLayout: null
+    })
+
+    onLayoutMaybeChanged(newLayout, oldLayout)
+  }
+
+  const onResizeStart: GirdItemProps['onResizeStart'] = (i, _w, _h, { e, node }) => {
+    const { layout } = state
+    const l = getLayoutItem(layout, i)
+    if (!l) return
+
+    setState({
+      oldResizeItem: cloneLayoutItem(l),
+      oldLayout: layout
+    })
+
+    props.onResizeStart(layout, l, l, null, e, node)
+  }
+
+  const onResize: GirdItemProps['onResize'] = (i, w, h, { e, node }) => {
+    const { layout, oldResizeItem } = state
+    const { cols, preventCollision, vertialCompact, compactType } = props
+
+    const l = getLayoutItem(layout, i)
+    if (!l) return
+
+    let hasCollisions: boolean
+    if (preventCollision) {
+      const collisions = getAllCollisions(layout, { ...l, w, h }).filter(({ i }) => i !== l.i)
+      hasCollisions = collisions.length > 0
+
+      // 在禁止碰撞的情况下，找出当前 item 的最大 w,h 已适配空间
+      if (hasCollisions) {
+        let leastX = Infinity
+        let leastY = Infinity
+
+        collisions.forEach(layoutItem => {
+          if (layoutItem.x > l.x) leastX = Math.min(leastX, layoutItem.x)
+          if (layoutItem.y > l.y) leastY = Math.min(leastY, layoutItem.y)
+        })
+
+        if (Number.isFinite(leastX)) l.w = leastX - l.x
+        if (Number.isFinite(leastY)) l.y = leastY - l.y
+      }
+    }
+
+    if (!hasCollisions) {
+      l.w = w
+      l.h = h
+    }
+
+    const placeholder: LayoutItem = {
+      w: l.w,
+      h: l.h,
+      x: l.x,
+      y: l.y,
+      isStatic: true,
+      i
+    }
+
+    props.onResize(layout, oldResizeItem, l, placeholder, e, node)
+    setState({
+      layout: compact(layout, getCompactType(vertialCompact, compactType), cols),
+      activeDrag: placeholder
+    })
+  }
+
+  const onResizeStop: GirdItemProps['onResizeStop'] = (i, w, h, { e, node }) => {
+    const { layout, oldResizeItem, oldLayout } = state
+    const { cols, vertialCompact, compactType } = props
+    const l = getLayoutItem(layout, i)
+
+    props.onResizeStop(layout, oldResizeItem, l, null, e, node)
+
+    const newLayout = compact(layout, getCompactType(vertialCompact, compactType), cols)
+    setState({
+      layout: newLayout,
+      activeDrag: null,
+      oldResizeItem: null,
       oldLayout: null
     })
 

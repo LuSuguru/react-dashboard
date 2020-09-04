@@ -49,7 +49,7 @@ export interface GirdItemProps extends PositionParams {
 }
 
 const GridItem: FC<GirdItemProps> = (props) => {
-  const { cols, containerPadding, containerWidth, margin, maxRows, rowHeight } = props
+  const { cols, containerPadding, containerWidth, margin, maxRows, rowHeight, x, y, w, h } = props
   const positionParams = { cols, containerPadding, containerWidth, margin, maxRows, rowHeight }
 
   const [dragging, setDragging] = useState<Position>(null)
