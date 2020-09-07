@@ -14,7 +14,7 @@ function isCollides(l1: LayoutItem, l2: LayoutItem) {
 }
 
 // 获取第一个碰撞的元素
-function getFirstCollision(layout: Layout, layoutItem: LayoutItem) {
+export function getFirstCollision(layout: Layout, layoutItem: LayoutItem) {
   return layout.find(l => isCollides(l, layoutItem))
 }
 

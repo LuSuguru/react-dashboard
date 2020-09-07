@@ -41,11 +41,11 @@ export function cloneLayoutItem(layoutItem: LayoutItem) {
     minH: layoutItem.minH,
     maxH: layoutItem.maxH,
 
-    moved: !!layoutItem.moved,
-    isStatic: !!layoutItem.isStatic,
-    isDraggable: !!layoutItem.isDraggable,
-    isResizable: !!layoutItem.isResizable,
-    isBounded: !!layoutItem.isBounded
+    moved: layoutItem.moved,
+    isStatic: layoutItem.isStatic,
+    isDraggable: layoutItem.isDraggable,
+    isResizable: layoutItem.isResizable,
+    isBounded: layoutItem.isBounded
   }
 }
 
