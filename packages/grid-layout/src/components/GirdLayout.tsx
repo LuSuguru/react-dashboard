@@ -3,10 +3,10 @@ import React, { memo, FC, RefObject, Children, ReactElement, MouseEvent, useEffe
 import classnames from 'clsx'
 import isEqual from 'lodash/isEqual'
 
-import { useStates, useMoveElement, usePrevious, useUpdateEffect } from '@/hooks'
-import { correctBounds, compact, getAllCollisions } from '@/utils/collision'
-import { getBottom, cloneLayoutItem, getLayoutItem, childrenEqual } from '@/utils/utils'
-import { Layout, CompactType, LayoutItem, DroppingPosition } from '@/type'
+import { useStates, useMoveElement, usePrevious, useUpdateEffect } from '../hooks'
+import { correctBounds, compact, getAllCollisions } from '../utils/collision'
+import { getBottom, cloneLayoutItem, getLayoutItem, childrenEqual } from '../utils/utils'
+import { Layout, CompactType, LayoutItem, DroppingPosition } from '../type'
 
 import GirdItem, { GirdItemProps } from './GirdItem'
 import Placeholder from './Placeholder'

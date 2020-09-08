@@ -1,4 +1,4 @@
-import { CompactType, Layout, LayoutItem } from '@/type'
+import { CompactType, Layout, LayoutItem } from '../type'
 import { sortLayoutItems } from '../utils/sortLayout'
 import { getFirstCollision, getAllCollisions } from '../utils/collision'
 

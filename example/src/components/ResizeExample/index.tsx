@@ -1,4 +1,4 @@
-import React, { useState, forwardRef } from 'react'
+import React, { useState } from 'react'
 import ResizableBox, { Resizable } from 'resizable'
 import './style.less'
 

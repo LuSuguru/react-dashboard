@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/indent */
 import React, { memo, FC } from 'react'
-import { LayoutItem } from '@/type'
+import { LayoutItem } from '../type'
 import GirdItem, { GirdItemProps } from './GirdItem'
 
 type ExtendProps = Pick<GirdItemProps,

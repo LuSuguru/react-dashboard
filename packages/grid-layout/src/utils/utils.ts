@@ -1,5 +1,5 @@
 import { CSSProperties, ReactElement } from 'react'
-import { Bound, Layout, LayoutItem } from '@/type'
+import { Bound, Layout, LayoutItem } from '../type'
 
 export function setTransform({ top, left, width, height }: Bound): CSSProperties {
   const translate = `translate(${left}px,${top}px)`

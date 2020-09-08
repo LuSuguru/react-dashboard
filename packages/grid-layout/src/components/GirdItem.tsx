@@ -5,9 +5,9 @@ import { useDraggable, DraggableCoreProps } from 'draggable'
 import { ResizeData } from 'resizable/es/type'
 import { ResizableProps } from 'resizable/es/components/Resizable'
 
-import { calcGridItemPosition, clacWH, clamp, clacXY, calcGirdItemWHPx, calcGirdColWidth } from '@/utils/calculate'
-import { setTransform, setTopLeft, perc } from '@/utils/utils'
-import { PositionParams, Position, Size, Bound, GridItemCallback, GirdResizeEvent, GirdDraggEvent, DroppingPosition } from '@/type'
+import { calcGridItemPosition, clacWH, clamp, clacXY, calcGirdItemWHPx, calcGirdColWidth } from '../utils/calculate'
+import { setTransform, setTopLeft, perc } from '../utils/utils'
+import { PositionParams, Position, Size, Bound, GridItemCallback, GirdResizeEvent, GirdDraggEvent, DroppingPosition } from '../type'
 
 export interface GirdItemProps extends PositionParams {
   children: ReactElement

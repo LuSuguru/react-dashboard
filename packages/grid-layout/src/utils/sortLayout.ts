@@ -1,4 +1,4 @@
-import { Layout, CompactType } from '@/type'
+import { Layout, CompactType } from '../type'
 
 // 优先排 y，再排 x
 function sortLayoutItemsByRowCol(layout: Layout): Layout {

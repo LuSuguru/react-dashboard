@@ -1,4 +1,4 @@
-import { Layout, LayoutItem, CompactType } from '@/type'
+import { Layout, LayoutItem, CompactType } from '../type'
 import { getBottom, cloneLayoutItem } from './utils'
 import { sortLayoutItems } from './sortLayout'
 
