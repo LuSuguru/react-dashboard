@@ -23,24 +23,26 @@ export function getAllCollisions(layout: Layout, layoutItem: LayoutItem) {
   return layout.filter(l => isCollides(l, layoutItem))
 }
 
-function resolveCompactionCollision(layout: Layout, item: LayoutItem, movetoCoord: number, axis: 'x' | 'y') {
+function resolveCompactionCollision(sortedLayout: Layout, item: LayoutItem, movetoCoord: number, axis: 'x' | 'y') {
   const sizeMap = { x: 'w', y: 'h' }
   const sizeProp = sizeMap[axis]
 
-  item[axis] += 1
+  item[axis] += 1 // 用于触发当前元素与后续元素碰撞
 
-  const itemIndex = layout.map(({ i }) => i).indexOf(item.i)
+  const itemIndex = sortedLayout.map(({ i }) => i).indexOf(item.i)
 
-  for (let i = itemIndex + 1; i < layout.length; i++) {
-    const otherItem = layout[i]
+  for (let i = itemIndex + 1; i < sortedLayout.length; i++) {
+    const otherItem = sortedLayout[i]
 
     // 静态 item 直接跳过
     if (otherItem.isStatic) continue
-    // 优化：排过序的 list ,我们可以尽早跳过
+    // 优化：
+    // 垂直模式下，由于已经排过序，在递归时处理的顺序，是从下至上，满足条件的元素其实已经被处理过了
+    // 水平模式下，解决冲突也是在 x 轴上，y轴不会有冲突，所以在 y 轴上不接触的元素也可以直接跳过
     if (otherItem.y > item.y + item.h) break
 
     if (isCollides(item, otherItem)) {
-      resolveCompactionCollision(layout, otherItem, movetoCoord + item[sizeProp], axis)
+      resolveCompactionCollision(sortedLayout, otherItem, movetoCoord + item[sizeProp], axis)
     }
   }
   item[axis] = movetoCoord
@@ -50,7 +52,7 @@ function compactItem(compareWith: Layout, l: LayoutItem, compactType: CompactTyp
   l.y = Math.min(getBottom(compareWith), l.y)
 
   if (compactType === 'vertical') {
-    // 满足未与比较过的 item 碰撞的前提下让 item 尽可能地往上，
+    // 满足未与比较过的 item 碰撞的前提下让 item 尽可能地往上
     while (l.y > 0 && !getFirstCollision(compareWith, l)) {
       l.y--
     }
@@ -95,12 +97,13 @@ export function compact(layout: Layout, compactType: CompactType, cols: number):
 
     out[layout.indexOf(item)] = newLayoutItem
 
+    // 移动标志位清空
     newLayoutItem.moved = false
   })
   return out
 }
 
-// 处理静态 item 和 超过边界的情况
+// 处理静态元素的碰撞 和 元素超过边界的情况
 export function correctBounds(layout: Layout, cols: number): Layout {
   const collidesWith = layout.filter(i => i.isStatic)
 

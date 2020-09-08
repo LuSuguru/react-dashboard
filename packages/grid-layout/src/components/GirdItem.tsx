@@ -257,7 +257,7 @@ const GridItem: FC<GirdItemProps> = (props) => {
         {newChild}
       </Resizable>
     )
-  }, [pos.height, pos.width, pos.left, pos.top, props.useCSSTransforms])
+  }, [pos.height, pos.width, pos.left, pos.top, props.useCSSTransforms, props.children, props.droppingPosition])
 }
 
 GridItem.defaultProps = {

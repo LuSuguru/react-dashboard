@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/indent */
-import React, { memo, FC, RefObject, Children, ReactElement, ReactChild, MouseEvent } from 'react'
+import React, { memo, FC, RefObject, Children, ReactElement, MouseEvent, useEffect, useMemo } from 'react'
 import classnames from 'clsx'
+import isEqual from 'lodash/isEqual'
 
-import { getBottom, cloneLayoutItem, getLayoutItem, isEqual } from '@/utils/utils'
-import useStates from '@/utils/useStates'
-import { Layout, CompactType, LayoutItem, DroppingPosition } from '@/type'
+import { useStates, useMoveElement, usePrevious, useUpdateEffect } from '@/hooks'
 import { correctBounds, compact, getAllCollisions } from '@/utils/collision'
-import useMoveElement from '@/utils/useMoveElement'
+import { getBottom, cloneLayoutItem, getLayoutItem, childrenEqual } from '@/utils/utils'
+import { Layout, CompactType, LayoutItem, DroppingPosition } from '@/type'
 
 import GirdItem, { GirdItemProps } from './GirdItem'
 import Placeholder from './Placeholder'
 
 type ExtendsProps = Partial<Pick<GirdItemProps,
-  | 'children'
   | 'className'
   | 'style'
   | 'cols'
@@ -29,6 +28,7 @@ type ExtendsProps = Partial<Pick<GirdItemProps,
 type EventCallbck = (layout: Layout, oldItem: LayoutItem, newItem: LayoutItem, placeholder: LayoutItem, e: MouseEvent<HTMLElement>, node: HTMLElement) => void
 
 interface GirdLayoutProps extends ExtendsProps {
+  children: ReactElement[]
   width: number
   layout: Layout
   autoSize?: boolean
@@ -55,7 +55,6 @@ interface GirdLayoutProps extends ExtendsProps {
 interface State {
   layout: Layout
   activeDrag: LayoutItem
-  mounted: boolean
   droppingPosition: DroppingPosition // 拖拽位置
   droppingDOMNode: ReactElement // 拖拽元素
   oldLayout: Layout
@@ -68,7 +67,7 @@ const layoutClassName = 'react-grid-layout'
 const getCompactType = (vertialCompact: boolean, compactType: CompactType) => (vertialCompact ? compactType : null)
 
 // 同步 layout
-function syncLayoutWithChildren(initialLayout: Layout = [], children: ReactChild, cols: number, compactType: CompactType): Layout {
+function syncLayoutWithChildren(initialLayout: Layout = [], children: ReactElement[], cols: number, compactType: CompactType): Layout {
   const layout: LayoutItem[] = []
 
   Children.forEach(children, (child: ReactElement, index: number) => {
@@ -98,18 +97,20 @@ function syncLayoutWithChildren(initialLayout: Layout = [], children: ReactChild
   return compact(correctedLayout, compactType, cols)
 }
 
+// TODO: 外部拖拽待加
 const GirdLayout: FC<GirdLayoutProps> = (props) => {
   const moveElement = useMoveElement(getCompactType(props.vertialCompact, props.compactType))
   const [state, setState] = useStates<State>({
     layout: syncLayoutWithChildren(props.layout, props.children, props.cols, getCompactType(props.vertialCompact, props.compactType)),
     activeDrag: null,
-    mounted: false,
     droppingPosition: null,
     droppingDOMNode: null,
     oldDragItem: null,
     oldLayout: null,
     oldResizeItem: null
   })
+  const prevProps = usePrevious(props)
+  const prevState = usePrevious(state)
 
   const onLayoutMaybeChanged = (newLayout: Layout, oldLayout: Layout) => {
     if (!oldLayout) {
@@ -120,6 +121,31 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
       props.onLayoutChange(newLayout)
     }
   }
+
+  useEffect(() => {
+    if (!state.activeDrag) {
+      onLayoutMaybeChanged(state.layout, prevState.layout)
+    }
+  }, [state.activeDrag, state.droppingPosition, props.children, JSON.stringify(props)])
+
+  // 监听 layout，compactType，children 变化，更新 state 的 layout
+  useUpdateEffect(() => {
+    const { layout, children, cols, vertialCompact, compactType } = props
+    if (state.activeDrag) {
+      return
+    }
+
+    let newLayoutBase: Layout
+    if (!isEqual(layout, prevProps?.layout) || compactType !== prevProps?.compactType) {
+      newLayoutBase = props.layout
+    } else if (!childrenEqual(prevProps.children, children)) {
+      newLayoutBase = prevState.layout
+    }
+
+    if (newLayoutBase) {
+      setState({ layout: syncLayoutWithChildren(newLayoutBase, children, cols, getCompactType(vertialCompact, compactType)) })
+    }
+  }, [props.layout, props.compactType, props.children])
 
   // 拖拽移动开始
   const onDragStart: GirdItemProps['onDragStart'] = (i, _x, _y, { e, node }) => {
@@ -152,6 +178,7 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
     }
 
     const partCompactType = getCompactType(vertialCompact, compactType)
+    // 移动元素到拖拽的位置
     layout = moveElement(layout, l, x, y, true, preventCollision)
     const newLayout = compact(layout, partCompactType, cols)
 
@@ -277,7 +304,7 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
 
   const processGridItem = (child: ReactElement, isDroppingItem = false) => {
     const { isBounded, width, cols, margin, containerPadding, maxRows, rowHeight, draggableCancel, draggableHandle, useCSSTransforms, transformScale, isDraggable, isResizable } = props
-    const { mounted, droppingPosition, layout } = state
+    const { droppingPosition, layout } = state
 
     if (!child || !child.key) return
     const l = getLayoutItem(layout, child.key + '')
@@ -305,8 +332,7 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
         isDraggable={draggable}
         isResizable={resizable}
         isBounded={bounded}
-        useCSSTransforms={useCSSTransforms && mounted}
-        usePercentages={!mounted}
+        useCSSTransforms={useCSSTransforms}
         transformScale={transformScale}
         w={l.w}
         h={l.h}
@@ -330,37 +356,40 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
     )
   }
 
-  const { innerRef, className, style, children, isDroppable, width, cols, margin, containerPadding, rowHeight, maxRows, useCSSTransforms, transformScale } = props
-  const { droppingDOMNode, activeDrag } = state
+  return useMemo(() => {
+    const { innerRef, className, style, children, isDroppable, width, cols, margin, containerPadding, rowHeight, maxRows, useCSSTransforms, transformScale } = props
+    const { droppingDOMNode, activeDrag } = state
 
-  return (
-    <div
-      ref={innerRef}
-      className={classnames(layoutClassName, className)}
-      style={{
-        height: containerHeight(),
-        ...style
-      }}>
+    return (
+      <div
+        ref={innerRef}
+        className={classnames(layoutClassName, className)}
+        style={{
+          height: containerHeight(),
+          ...style
+        }}>
 
-      {Children.map(children, (child: ReactElement) => processGridItem(child))}
+        {Children.map(children, (child: ReactElement) => processGridItem(child))}
 
-      {isDroppable && droppingDOMNode && processGridItem(droppingDOMNode, true)}
+        {isDroppable && droppingDOMNode && processGridItem(droppingDOMNode, true)}
 
-      <Placeholder
-        activeDrag={activeDrag}
-        width={width}
-        cols={cols}
-        margin={margin}
-        containerPadding={containerPadding}
-        rowHeight={rowHeight}
-        maxRows={maxRows}
-        useCSSTransforms={useCSSTransforms}
-        transformScale={transformScale} />
-    </div>
-  )
+        <Placeholder
+          activeDrag={activeDrag}
+          width={width}
+          cols={cols}
+          margin={margin}
+          containerPadding={containerPadding}
+          rowHeight={rowHeight}
+          maxRows={maxRows}
+          useCSSTransforms={useCSSTransforms}
+          transformScale={transformScale} />
+      </div>
+    )
+  }, [state.activeDrag, state.droppingPosition, props.children, JSON.stringify(props)])
 }
 
 GirdLayout.defaultProps = {
+  children: [],
   className: '',
   layout: [],
   style: {},

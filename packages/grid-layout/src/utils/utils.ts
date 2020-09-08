@@ -1,4 +1,4 @@
-import { CSSProperties } from 'react'
+import { CSSProperties, ReactElement } from 'react'
 import { Bound, Layout, LayoutItem } from '@/type'
 
 export function setTransform({ top, left, width, height }: Bound): CSSProperties {
@@ -66,6 +66,6 @@ export function getLayoutItem(layout: Layout, i: string) {
   return layout.find(layout => i === layout.i)
 }
 
-export function isEqual<T>(oldObj: T, newObj: T) {
-  return JSON.stringify(oldObj) === JSON.stringify(newObj)
+export function childrenEqual(prevChild: ReactElement[], nextChild: ReactElement[]) {
+  return prevChild.map(child => child.key).join(',') === nextChild.map(child => child.key).join(',')
 }

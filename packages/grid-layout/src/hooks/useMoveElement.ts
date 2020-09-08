@@ -1,8 +1,9 @@
 import { CompactType, Layout, LayoutItem } from '@/type'
-import { sortLayoutItems } from './sortLayout'
-import { getFirstCollision, getAllCollisions } from './collision'
+import { sortLayoutItems } from '../utils/sortLayout'
+import { getFirstCollision, getAllCollisions } from '../utils/collision'
 
 export default function useMoveElement(compactType: CompactType) {
+  // 移动元素，使其远离碰撞，如果有空间，我们尝试将其向上移动，否则，我们尝试向下移动
   function moveElementAwayFromCollision(layout: Layout, collidesWith: LayoutItem, itemToMove: LayoutItem, isUserAction: boolean): Layout {
     const preventCollision = collidesWith.isStatic
     const compactH = compactType === 'horizontal'
@@ -59,7 +60,7 @@ export default function useMoveElement(compactType: CompactType) {
     if (typeof y === 'number') l.y = y
     l.moved = true
 
-    // 优化，减少移动次数
+    // 如果碰撞到了其他元素，移动这些元素，我们将整个 layout 进行排序，以确保在发生多次碰撞的情况下，我们能获得最近碰撞的元素
     let sorted = sortLayoutItems(layout, compactType)
     const movingUp = compactType === 'vertical' && typeof y === 'number'
       ? oldY >= y
