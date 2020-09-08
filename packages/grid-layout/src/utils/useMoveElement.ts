@@ -11,6 +11,10 @@ export default function useMoveElement(compactType: CompactType) {
     if (isUserAction) {
       isUserAction = false
 
+      // Math.max(collidesWith.y - itemToMove.h)用来判断在垂直方向上，如果碰撞的元素上方有足够的空间放置待移动元素
+      // 在垂直方向上，一般发生在元素从上垂直往下移动时
+      // 同理，水平方向也一样，一般发生在元素从左往右垂直移动时
+      // 我们仅在主要移动中这样做，在级联操作中会引发不必要的交换位置
       const fakeItem: LayoutItem = {
         x: compactH ? Math.max(collidesWith.x - itemToMove.w, 0) : itemToMove.x,
         y: compactV ? Math.max(collidesWith.y - itemToMove.h, 0) : itemToMove.y,
@@ -19,6 +23,7 @@ export default function useMoveElement(compactType: CompactType) {
         i: '-1'
       }
 
+      // 没有冲突，即有足够的空间容乃
       if (!getFirstCollision(layout, fakeItem)) {
         return moveElement(
           layout,
@@ -54,12 +59,14 @@ export default function useMoveElement(compactType: CompactType) {
     if (typeof y === 'number') l.y = y
     l.moved = true
 
+    // 优化，减少移动次数
     let sorted = sortLayoutItems(layout, compactType)
     const movingUp = compactType === 'vertical' && typeof y === 'number'
       ? oldY >= y
       : compactType === 'horizontal' && typeof x === 'number'
         ? oldX >= x
         : false
+    // 如果是往上或者是往左移动，需要倒排
     if (movingUp) {
       sorted = [...sorted].reverse()
     }
@@ -76,6 +83,7 @@ export default function useMoveElement(compactType: CompactType) {
     for (let i = 0; i < collisions.length; i++) {
       const collision = collisions[i]
 
+      // 如果已经移动过了，直接跳过，避免无限循环
       if (collision.moved) continue
 
       // 不能移动 static item，我们必须移动当前元素本身
