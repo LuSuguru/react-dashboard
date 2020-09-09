@@ -33,7 +33,7 @@ interface GirdLayoutProps extends ExtendsProps {
   layout: Layout
   autoSize?: boolean
   isDroppable?: boolean // 是否开启拖拽
-  preventCollision: boolean // 是否阻止碰撞
+  preventCollision?: boolean // 是否阻止碰撞
 
   vertialCompact?: boolean
   compactType?: CompactType
@@ -43,13 +43,13 @@ interface GirdLayoutProps extends ExtendsProps {
 
   innerRef?: RefObject<HTMLDivElement>
 
-  onDragStart: EventCallbck
-  onDrag: EventCallbck
-  onDragStop: EventCallbck
-  onResize: EventCallbck
-  onResizeStart: EventCallbck
-  onResizeStop: EventCallbck
-  onLayoutChange: (newLayout: Layout) => void
+  onDragStart?: EventCallbck
+  onDrag?: EventCallbck
+  onDragStop?: EventCallbck
+  onResize?: EventCallbck
+  onResizeStart?: EventCallbck
+  onResizeStop?: EventCallbck
+  onLayoutChange?: (newLayout: Layout) => void
 }
 
 interface State {
@@ -124,9 +124,9 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
 
   useEffect(() => {
     if (!state.activeDrag) {
-      onLayoutMaybeChanged(state.layout, prevState.layout)
+      onLayoutMaybeChanged(state.layout, prevState?.layout)
     }
-  }, [state.activeDrag, state.droppingPosition, props.children, JSON.stringify(props)])
+  }, [state.activeDrag, state.droppingPosition, props.children])
 
   // 监听 layout，compactType，children 变化，更新 state 的 layout
   useUpdateEffect(() => {
@@ -139,7 +139,7 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
     if (!isEqual(layout, prevProps?.layout) || compactType !== prevProps?.compactType) {
       newLayoutBase = props.layout
     } else if (!childrenEqual(prevProps.children, children)) {
-      newLayoutBase = prevState.layout
+      newLayoutBase = prevState?.layout
     }
 
     if (newLayoutBase) {
@@ -298,7 +298,6 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
 
     const row = getBottom(state.layout)
     const containerPaddingY = containerPadding ? containerPadding[1] : margin[1]
-
     return `${(row * rowHeight) + (row - 1) * margin[1] + containerPaddingY * 2}px`
   }
 
@@ -385,7 +384,7 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
           transformScale={transformScale} />
       </div>
     )
-  }, [state.activeDrag, state.droppingPosition, props.children, JSON.stringify(props)])
+  }, [state.activeDrag, state.droppingPosition, props.children])
 }
 
 GirdLayout.defaultProps = {

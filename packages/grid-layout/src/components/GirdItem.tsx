@@ -220,7 +220,7 @@ const GridItem: FC<GirdItemProps> = (props) => {
     const child = React.Children.only(props.children)
 
     const newChild = React.cloneElement(child, {
-      classNames: classnames(
+      className: classnames(
         'react-grid-item',
         child.props.className,
         props.className,

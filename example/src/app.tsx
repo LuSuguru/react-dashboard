@@ -30,11 +30,11 @@ function App() {
           <Route path="/resizable">
             <ResizableExample />
           </Route>
-          <Route path="/">
-            <DraggableExample />
-          </Route>
           <Route path="/grid-layout">
             <GridLayoutExample />
+          </Route>
+          <Route path="/">
+            <DraggableExample />
           </Route>
         </Switch>
       </div>

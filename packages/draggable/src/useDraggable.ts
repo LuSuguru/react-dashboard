@@ -138,6 +138,7 @@ export default function useDraggable(props: DraggableCoreProps) {
   })
 
   const onMouseDown = usePersistFn((e: ReactMouseEvent<HTMLElement>) => {
+    console.log(props)
     props.onMouseDown?.(e)
 
     const { ownerDocument } = nodeRef.current

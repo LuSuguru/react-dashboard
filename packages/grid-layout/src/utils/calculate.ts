@@ -31,7 +31,7 @@ export function calcGridItemPosition(positionParams: PositionParams, x: number, 
     out.left = Math.round(state.dragging.left)
   } else {
     out.top = Math.round((rowHeight + margin[1]) * y + containerPadding[1])
-    out.left = Math.round((colWidth + margin[0] * x) + containerPadding[0])
+    out.left = Math.round((colWidth + margin[0]) * x + containerPadding[0])
   }
 
   return out
