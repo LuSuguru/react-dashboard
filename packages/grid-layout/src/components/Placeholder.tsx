@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/indent */
 import React, { memo, FC } from 'react'
 import { LayoutItem } from '../type'
-import GirdItem, { GirdItemProps } from './GirdItem'
+import GridItem, { GridItemProps } from './GridItem'
 
-type ExtendProps = Pick<GirdItemProps,
+type ExtendProps = Pick<GridItemProps,
   | 'cols'
   | 'margin'
   | 'containerPadding'
@@ -24,7 +24,7 @@ const Placeholder: FC<Props> = (props) => {
   if (!activeDrag) return null
 
   return (
-    <GirdItem
+    <GridItem
       {...activeDrag}
       className="react-grid-placeholder"
       containerWidth={width}
@@ -39,7 +39,7 @@ const Placeholder: FC<Props> = (props) => {
       useCSSTransforms={useCSSTransforms}
       transformScale={transformScale}>
       <div />
-    </GirdItem>
+    </GridItem>
   )
 }
 

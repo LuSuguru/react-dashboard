@@ -1,20 +1,20 @@
 import { PositionParams, Position, Size, Bound } from '../type'
 
-// 计算每一个 gird col 的 width
-export function calcGirdColWidth({ margin, containerPadding, containerWidth, cols }: PositionParams) {
+// 计算每一个 grid col 的 width
+export function calcGridColWidth({ margin, containerPadding, containerWidth, cols }: PositionParams) {
   return (containerWidth - margin[0] * (cols - 1) - containerPadding[0] * 2) / cols
 }
 
 // 通过 w,h 获得每一个 gitd 的具体 width,height
-export function calcGirdItemWHPx(girdUnits: number, colOrRowSize: number, marginPx: number) {
-  if (!Number.isFinite(girdUnits)) return girdUnits
+export function calcGridItemWHPx(gridUnits: number, colOrRowSize: number, marginPx: number) {
+  if (!Number.isFinite(gridUnits)) return gridUnits
 
-  return Math.round(colOrRowSize * girdUnits) + Math.max(0, girdUnits - 1) * marginPx
+  return Math.round(colOrRowSize * gridUnits) + Math.max(0, gridUnits - 1) * marginPx
 }
 
 export function calcGridItemPosition(positionParams: PositionParams, x: number, y: number, w: number, h: number, state?: { resizing: Size, dragging: Position }) {
   const { margin, containerPadding, rowHeight } = positionParams
-  const colWidth = calcGirdColWidth(positionParams)
+  const colWidth = calcGridColWidth(positionParams)
 
   const out: Bound = {}
 
@@ -22,8 +22,8 @@ export function calcGridItemPosition(positionParams: PositionParams, x: number, 
     out.width = Math.round(state.resizing.width)
     out.height = Math.round(state.resizing.height)
   } else {
-    out.width = calcGirdItemWHPx(w, colWidth, margin[0])
-    out.height = calcGirdItemWHPx(h, rowHeight, margin[1])
+    out.width = calcGridItemWHPx(w, colWidth, margin[0])
+    out.height = calcGridItemWHPx(h, rowHeight, margin[1])
   }
 
   if (state?.dragging) {
@@ -39,7 +39,7 @@ export function calcGridItemPosition(positionParams: PositionParams, x: number, 
 
 export function clacWH(positionParams: PositionParams, width: number, height: number, x: number, y: number) {
   const { margin, maxRows, cols, rowHeight } = positionParams
-  const colWidth = calcGirdColWidth(positionParams)
+  const colWidth = calcGridColWidth(positionParams)
 
   // width = colWidth * w + margin * (w - 1) => w = (width + margin) / (colwidth + margin)
   let w = Math.round((width + margin[0]) / (colWidth + margin[0]))
@@ -54,7 +54,7 @@ export function clacWH(positionParams: PositionParams, width: number, height: nu
 
 export function clacXY(positionParams: PositionParams, top: number, left: number, w: number, h: number) {
   const { margin, cols, rowHeight, maxRows } = positionParams
-  const colWidth = calcGirdColWidth(positionParams)
+  const colWidth = calcGridColWidth(positionParams)
 
   // left = colWidth * x + margin * (x + 1) => x = (left - margin) / (colWidth + margin)
   let x = Math.round((left - margin[0]) / (colWidth + margin[0]))

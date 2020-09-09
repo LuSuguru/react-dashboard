@@ -5,11 +5,11 @@ import { useDraggable, DraggableCoreProps } from 'draggable'
 import { ResizeData } from 'resizable/es/type'
 import { ResizableProps } from 'resizable/es/components/Resizable'
 
-import { calcGridItemPosition, clacWH, clamp, clacXY, calcGirdItemWHPx, calcGirdColWidth } from '../utils/calculate'
+import { calcGridItemPosition, clacWH, clamp, clacXY, calcGridItemWHPx, calcGridColWidth } from '../utils/calculate'
 import { setTransform, setTopLeft, perc } from '../utils/utils'
-import { PositionParams, Position, Size, Bound, GridItemCallback, GirdResizeEvent, GirdDraggEvent, DroppingPosition } from '../type'
+import { PositionParams, Position, Size, Bound, GridItemCallback, GridResizeEvent, GridDraggEvent, DroppingPosition } from '../type'
 
-export interface GirdItemProps extends PositionParams {
+export interface GridItemProps extends PositionParams {
   children: ReactElement
   className?: string
   style?: CSSProperties
@@ -39,16 +39,16 @@ export interface GirdItemProps extends PositionParams {
   usePercentages?: boolean
   transformScale: number
 
-  onResize?: GridItemCallback<GirdResizeEvent>
-  onResizeStart?: GridItemCallback<GirdResizeEvent>
-  onResizeStop?: GridItemCallback<GirdResizeEvent>
+  onResize?: GridItemCallback<GridResizeEvent>
+  onResizeStart?: GridItemCallback<GridResizeEvent>
+  onResizeStop?: GridItemCallback<GridResizeEvent>
 
-  onDragStart?: GridItemCallback<GirdDraggEvent>
-  onDrag?: GridItemCallback<GirdDraggEvent>
-  onDragStop?: GridItemCallback<GirdDraggEvent>
+  onDragStart?: GridItemCallback<GridDraggEvent>
+  onDrag?: GridItemCallback<GridDraggEvent>
+  onDragStop?: GridItemCallback<GridDraggEvent>
 }
 
-const GridItem: FC<GirdItemProps> = (props) => {
+const GridItem: FC<GridItemProps> = (props) => {
   const { cols, containerPadding, containerWidth, margin, maxRows, rowHeight, x, y, w, h } = props
   const positionParams = { cols, containerPadding, containerWidth, margin, maxRows, rowHeight }
 
@@ -101,11 +101,11 @@ const GridItem: FC<GirdItemProps> = (props) => {
       const { offsetParent } = node
 
       if (offsetParent) {
-        const bottomBoundary = offsetParent.clientHeight - calcGirdItemWHPx(h, rowHeight, margin[1])
+        const bottomBoundary = offsetParent.clientHeight - calcGridItemWHPx(h, rowHeight, margin[1])
         top = clamp(top, 0, bottomBoundary)
 
-        const colWidth = calcGirdColWidth(positionParams)
-        const rightBoundary = containerWidth - calcGirdItemWHPx(w, colWidth, margin[0])
+        const colWidth = calcGridColWidth(positionParams)
+        const rightBoundary = containerWidth - calcGridItemWHPx(w, colWidth, margin[0])
         left = clamp(left, 0, rightBoundary)
       }
     }
@@ -155,7 +155,7 @@ const GridItem: FC<GirdItemProps> = (props) => {
   const onResize: ResizableProps['onResize'] = (e, data) => onResizeHandler(e, data, 'onResize')
 
   const { nodeRef, onMouseDown, onMouseUp } = useDraggable({
-    disabled: props.isDraggable,
+    disabled: !props.isDraggable,
     onStart: onDragStart,
     onDrag,
     onStop: onDragStop,
@@ -186,78 +186,76 @@ const GridItem: FC<GirdItemProps> = (props) => {
     }
   }, [props.droppingPosition?.left, props.droppingPosition?.top])
 
-  return useMemo(() => {
-    const { x, minW, minH, maxW, maxH, useCSSTransforms, usePercentages } = props
+  const { minW, minH, maxW, maxH, useCSSTransforms, usePercentages } = props
 
-    const createStyle = (pos: Bound) => {
-      let style: CSSProperties
-      if (useCSSTransforms) {
-        style = setTransform(pos)
-      } else {
-        style = setTopLeft(pos)
+  const createStyle = (pos: Bound) => {
+    let style: CSSProperties
+    if (useCSSTransforms) {
+      style = setTransform(pos)
+    } else {
+      style = setTopLeft(pos)
 
-        if (usePercentages) {
-          style.left = perc(pos.left / containerWidth)
-          style.width = perc(pos.width / containerWidth)
-        }
+      if (usePercentages) {
+        style.left = perc(pos.left / containerWidth)
+        style.width = perc(pos.width / containerWidth)
       }
-      return style
     }
+    return style
+  }
 
-    const getMinOrMaxConstraints = () => {
-      const maxWidth = calcGridItemPosition(positionParams, 0, 0, cols - x, 0).width
-      const mins = calcGridItemPosition(positionParams, 0, 0, minW, minH)
-      const maxes = calcGridItemPosition(positionParams, 0, 0, maxW, maxH)
-      const minConstraints: [number, number] = [mins.width, mins.height]
-      const maxConstraints: [number, number] = [
-        Math.min(maxes.width, maxWidth),
-        Math.max(maxes.height, Infinity)
-      ]
+  const getMinOrMaxConstraints = () => {
+    const maxWidth = calcGridItemPosition(positionParams, 0, 0, cols - x, 0).width
+    const mins = calcGridItemPosition(positionParams, 0, 0, minW, minH)
+    const maxes = calcGridItemPosition(positionParams, 0, 0, maxW, maxH)
+    const minConstraints: [number, number] = [mins.width, mins.height]
+    const maxConstraints: [number, number] = [
+      Math.min(maxes.width, maxWidth),
+      Math.max(maxes.height, Infinity)
+    ]
 
-      return { minConstraints, maxConstraints }
-    }
+    return { minConstraints, maxConstraints }
+  }
 
-    const child = React.Children.only(props.children)
+  const child = React.Children.only(props.children)
 
-    const newChild = React.cloneElement(child, {
-      className: classnames(
-        'react-grid-item',
-        child.props.className,
-        props.className,
-        {
-          isStatic: props.isStatic,
-          resizing: !!resizing,
-          'react-draggable': props.isDraggable,
-          'react-draggable-dragging': !!dragging,
-          dropping: !!props.droppingPosition,
-          cssTransforms: useCSSTransforms
-        }
-      ),
-      ref: nodeRef,
-      onMouseDown,
-      onMouseUp,
-      style: {
-        ...props.style,
-        ...child.props.style,
-        ...createStyle(pos)
+  const newChild = React.cloneElement(child, {
+    className: classnames(
+      'react-grid-item',
+      child.props.className,
+      props.className,
+      {
+        isStatic: props.isStatic,
+        resizing: !!resizing,
+        'react-draggable': props.isDraggable,
+        'react-draggable-dragging': !!dragging,
+        dropping: !!props.droppingPosition,
+        cssTransforms: useCSSTransforms
       }
-    })
+    ),
+    ref: nodeRef,
+    onMouseDown,
+    onMouseUp,
+    style: {
+      ...props.style,
+      ...child.props.style,
+      ...createStyle(pos)
+    }
+  })
 
-    return (
-      <Resizable
-        {...getMinOrMaxConstraints()}
-        draggableOpts={{ disabled: !props.isResizable }}
-        className={props.isResizable ? undefined : 'react-resizable-hide'}
-        width={pos.width}
-        height={pos.height}
-        transformScale={props.transformScale}
-        onResize={onResize}
-        onResizeStart={onResizeStart}
-        onResizeStop={onResizeStop}>
-        {newChild}
-      </Resizable>
-    )
-  }, [pos.height, pos.width, pos.left, pos.top, props.useCSSTransforms, props.children, props.droppingPosition])
+  return (
+    <Resizable
+      {...getMinOrMaxConstraints()}
+      draggableOpts={{ disabled: !props.isResizable }}
+      className={props.isResizable ? undefined : 'react-resizable-hide'}
+      width={pos.width}
+      height={pos.height}
+      transformScale={props.transformScale}
+      onResize={onResize}
+      onResizeStart={onResizeStart}
+      onResizeStop={onResizeStop}>
+      {newChild}
+    </Resizable>
+  )
 }
 
 GridItem.defaultProps = {

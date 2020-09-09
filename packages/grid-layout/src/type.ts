@@ -25,13 +25,13 @@ export interface DroppingPosition extends Position {
 
 export type Bound = Partial<Position & Size>
 
-export interface GirdResizeEvent {
+export interface GridResizeEvent {
   e: MouseEvent<HTMLElement>
   node: HTMLElement
   size: Size
 }
 
-export interface GirdDraggEvent {
+export interface GridDraggEvent {
   e: MouseEvent<HTMLElement>
   node: HTMLElement
   newPosition: Position

@@ -8,10 +8,10 @@ import { correctBounds, compact, getAllCollisions } from '../utils/collision'
 import { getBottom, cloneLayoutItem, getLayoutItem, childrenEqual } from '../utils/utils'
 import { Layout, CompactType, LayoutItem, DroppingPosition } from '../type'
 
-import GirdItem, { GirdItemProps } from './GirdItem'
+import GridItem, { GridItemProps } from './GridItem'
 import Placeholder from './Placeholder'
 
-type ExtendsProps = Partial<Pick<GirdItemProps,
+type ExtendsProps = Partial<Pick<GridItemProps,
   | 'className'
   | 'style'
   | 'cols'
@@ -27,7 +27,7 @@ type ExtendsProps = Partial<Pick<GirdItemProps,
 
 type EventCallbck = (layout: Layout, oldItem: LayoutItem, newItem: LayoutItem, placeholder: LayoutItem, e: MouseEvent<HTMLElement>, node: HTMLElement) => void
 
-interface GirdLayoutProps extends ExtendsProps {
+interface GridLayoutProps extends ExtendsProps {
   children: ReactElement[]
   width: number
   layout: Layout
@@ -98,7 +98,7 @@ function syncLayoutWithChildren(initialLayout: Layout = [], children: ReactEleme
 }
 
 // TODO: 外部拖拽待加
-const GirdLayout: FC<GirdLayoutProps> = (props) => {
+const GridLayout: FC<GridLayoutProps> = (props) => {
   const moveElement = useMoveElement(getCompactType(props.vertialCompact, props.compactType))
   const [state, setState] = useStates<State>({
     layout: syncLayoutWithChildren(props.layout, props.children, props.cols, getCompactType(props.vertialCompact, props.compactType)),
@@ -118,7 +118,7 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
     }
 
     if (!isEqual(oldLayout, newLayout)) {
-      props.onLayoutChange(newLayout)
+      props.onLayoutChange?.(newLayout)
     }
   }
 
@@ -148,7 +148,7 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
   }, [props.layout, props.compactType, props.children])
 
   // 拖拽移动开始
-  const onDragStart: GirdItemProps['onDragStart'] = (i, _x, _y, { e, node }) => {
+  const onDragStart: GridItemProps['onDragStart'] = (i, _x, _y, { e, node }) => {
     const { layout } = state
     const l = getLayoutItem(layout, i)
     if (!l) return
@@ -158,10 +158,10 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
       oldLayout: layout
     })
 
-    props.onDragStart(layout, l, l, null, e, node)
+    props.onDragStart?.(layout, l, l, null, e, node)
   }
 
-  const onDrag: GirdItemProps['onDrag'] = (i, x, y, { e, node }) => {
+  const onDrag: GridItemProps['onDrag'] = (i, x, y, { e, node }) => {
     const { cols, preventCollision, vertialCompact, compactType } = props
     const { oldDragItem } = state
     let { layout } = state
@@ -182,14 +182,14 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
     layout = moveElement(layout, l, x, y, true, preventCollision)
     const newLayout = compact(layout, partCompactType, cols)
 
-    props.onDrag(layout, oldDragItem, l, placeholder, e, node)
+    props.onDrag?.(layout, oldDragItem, l, placeholder, e, node)
     setState({
       layout: newLayout,
       activeDrag: placeholder
     })
   }
 
-  const onDragStop: GirdItemProps['onDragStop'] = (i, x, y, { e, node }) => {
+  const onDragStop: GridItemProps['onDragStop'] = (i, x, y, { e, node }) => {
     const { cols, preventCollision, vertialCompact, compactType } = props
     const { activeDrag, oldDragItem, oldLayout } = state
     let { layout } = state
@@ -202,7 +202,7 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
     layout = moveElement(layout, l, x, y, true, preventCollision)
     const newLayout = compact(layout, partCompactType, cols)
 
-    props.onDragStop(layout, oldDragItem, l, null, e, node)
+    props.onDragStop?.(layout, oldDragItem, l, null, e, node)
     setState({
       layout: newLayout,
       activeDrag: null,
@@ -213,7 +213,7 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
     onLayoutMaybeChanged(newLayout, oldLayout)
   }
 
-  const onResizeStart: GirdItemProps['onResizeStart'] = (i, _w, _h, { e, node }) => {
+  const onResizeStart: GridItemProps['onResizeStart'] = (i, _w, _h, { e, node }) => {
     const { layout } = state
     const l = getLayoutItem(layout, i)
     if (!l) return
@@ -223,10 +223,10 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
       oldLayout: layout
     })
 
-    props.onResizeStart(layout, l, l, null, e, node)
+    props.onResizeStart?.(layout, l, l, null, e, node)
   }
 
-  const onResize: GirdItemProps['onResize'] = (i, w, h, { e, node }) => {
+  const onResize: GridItemProps['onResize'] = (i, w, h, { e, node }) => {
     const { layout, oldResizeItem } = state
     const { cols, preventCollision, vertialCompact, compactType } = props
 
@@ -267,19 +267,19 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
       i
     }
 
-    props.onResize(layout, oldResizeItem, l, placeholder, e, node)
+    props.onResize?.(layout, oldResizeItem, l, placeholder, e, node)
     setState({
       layout: compact(layout, getCompactType(vertialCompact, compactType), cols),
       activeDrag: placeholder
     })
   }
 
-  const onResizeStop: GirdItemProps['onResizeStop'] = (i, w, h, { e, node }) => {
+  const onResizeStop: GridItemProps['onResizeStop'] = (i, w, h, { e, node }) => {
     const { layout, oldResizeItem, oldLayout } = state
     const { cols, vertialCompact, compactType } = props
     const l = getLayoutItem(layout, i)
 
-    props.onResizeStop(layout, oldResizeItem, l, null, e, node)
+    props.onResizeStop?.(layout, oldResizeItem, l, null, e, node)
 
     const newLayout = compact(layout, getCompactType(vertialCompact, compactType), cols)
     setState({
@@ -319,7 +319,7 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
     const bounded = draggable && isBounded && l.isBounded !== false
 
     return (
-      <GirdItem
+      <GridItem
         containerWidth={width}
         cols={cols}
         margin={margin}
@@ -351,43 +351,41 @@ const GirdLayout: FC<GirdLayoutProps> = (props) => {
         onResize={onResize}
         onResizeStop={onResizeStop}>
         {child}
-      </GirdItem>
+      </GridItem>
     )
   }
 
-  return useMemo(() => {
-    const { innerRef, className, style, children, isDroppable, width, cols, margin, containerPadding, rowHeight, maxRows, useCSSTransforms, transformScale } = props
-    const { droppingDOMNode, activeDrag } = state
+  const { innerRef, className, style, children, isDroppable, width, cols, margin, containerPadding, rowHeight, maxRows, useCSSTransforms, transformScale } = props
+  const { droppingDOMNode, activeDrag } = state
 
-    return (
-      <div
-        ref={innerRef}
-        className={classnames(layoutClassName, className)}
-        style={{
-          height: containerHeight(),
-          ...style
-        }}>
+  return (
+    <div
+      ref={innerRef}
+      className={classnames(layoutClassName, className)}
+      style={{
+        height: containerHeight(),
+        ...style
+      }}>
 
-        {Children.map(children, (child: ReactElement) => processGridItem(child))}
+      {Children.map(children, (child: ReactElement) => processGridItem(child))}
 
-        {isDroppable && droppingDOMNode && processGridItem(droppingDOMNode, true)}
+      {isDroppable && droppingDOMNode && processGridItem(droppingDOMNode, true)}
 
-        <Placeholder
-          activeDrag={activeDrag}
-          width={width}
-          cols={cols}
-          margin={margin}
-          containerPadding={containerPadding}
-          rowHeight={rowHeight}
-          maxRows={maxRows}
-          useCSSTransforms={useCSSTransforms}
-          transformScale={transformScale} />
-      </div>
-    )
-  }, [state.activeDrag, state.droppingPosition, props.children])
+      <Placeholder
+        activeDrag={activeDrag}
+        width={width}
+        cols={cols}
+        margin={margin}
+        containerPadding={containerPadding}
+        rowHeight={rowHeight}
+        maxRows={maxRows}
+        useCSSTransforms={useCSSTransforms}
+        transformScale={transformScale} />
+    </div>
+  )
 }
 
-GirdLayout.defaultProps = {
+GridLayout.defaultProps = {
   children: [],
   className: '',
   layout: [],
@@ -411,4 +409,4 @@ GirdLayout.defaultProps = {
   draggableHandle: ''
 }
 
-export default memo(GirdLayout)
+export default memo(GridLayout)
