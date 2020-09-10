@@ -151,6 +151,7 @@ const GridLayout: FC<GridLayoutProps> = (props) => {
   const onDragStart: GridItemProps['onDragStart'] = (i, _x, _y, { e, node }) => {
     const { layout } = state
     const l = getLayoutItem(layout, i)
+
     if (!l) return
 
     setState({
@@ -355,34 +356,36 @@ const GridLayout: FC<GridLayoutProps> = (props) => {
     )
   }
 
-  const { innerRef, className, style, children, isDroppable, width, cols, margin, containerPadding, rowHeight, maxRows, useCSSTransforms, transformScale } = props
-  const { droppingDOMNode, activeDrag } = state
+  return useMemo(() => {
+    const { innerRef, className, style, children, isDroppable, width, cols, margin, containerPadding, rowHeight, maxRows, useCSSTransforms, transformScale } = props
+    const { droppingDOMNode, activeDrag } = state
 
-  return (
-    <div
-      ref={innerRef}
-      className={classnames(layoutClassName, className)}
-      style={{
-        height: containerHeight(),
-        ...style
-      }}>
+    return (
+      <div
+        ref={innerRef}
+        className={classnames(layoutClassName, className)}
+        style={{
+          height: containerHeight(),
+          ...style
+        }}>
 
-      {Children.map(children, (child: ReactElement) => processGridItem(child))}
+        {Children.map(children, (child: ReactElement) => processGridItem(child))}
 
-      {isDroppable && droppingDOMNode && processGridItem(droppingDOMNode, true)}
+        {isDroppable && droppingDOMNode && processGridItem(droppingDOMNode, true)}
 
-      <Placeholder
-        activeDrag={activeDrag}
-        width={width}
-        cols={cols}
-        margin={margin}
-        containerPadding={containerPadding}
-        rowHeight={rowHeight}
-        maxRows={maxRows}
-        useCSSTransforms={useCSSTransforms}
-        transformScale={transformScale} />
-    </div>
-  )
+        <Placeholder
+          activeDrag={activeDrag}
+          width={width}
+          cols={cols}
+          margin={margin}
+          containerPadding={containerPadding}
+          rowHeight={rowHeight}
+          maxRows={maxRows}
+          useCSSTransforms={useCSSTransforms}
+          transformScale={transformScale} />
+      </div>
+    )
+  }, [state.activeDrag, state.droppingPosition, props.children])
 }
 
 GridLayout.defaultProps = {

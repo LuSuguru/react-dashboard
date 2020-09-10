@@ -57,17 +57,22 @@ const GridItem: FC<GridItemProps> = (props) => {
 
   const pos = calcGridItemPosition(positionParams, x, y, w, h, { resizing, dragging })
 
+  if (props.i === '0') {
+    console.log(dragging, props.i)
+  }
+
   const onDragStart: DraggableCoreProps['onStart'] = (e, { node }) => {
-    const { i, transformScale, onDragStart } = props
-    if (!onDragStart) return
+    const { i, transformScale } = props
+    if (!props.onDragStart) return
 
     const newPosition: Position = { top: 0, left: 0 }
+    console.log('onDragStart')
 
     const { offsetParent } = node
     if (!offsetParent) return
 
     const parentRect = offsetParent.getBoundingClientRect()
-    const clientRect = offsetParent.getBoundingClientRect()
+    const clientRect = node.getBoundingClientRect()
 
     const cLeft = clientRect.left / transformScale
     const pLeft = parentRect.left / transformScale
@@ -80,13 +85,13 @@ const GridItem: FC<GridItemProps> = (props) => {
     setDragging(newPosition)
     const { x, y } = clacXY(positionParams, newPosition.top, newPosition.left, w, h)
 
-    return onDragStart(i, x, y, { e, node, newPosition })
+    return props.onDragStart(i, x, y, { e, node, newPosition })
   }
 
   const onDrag: DraggableCoreProps['onDrag'] = (e, { node, deltaX, deltaY }) => {
-    const { i, w, h, transformScale, isBounded, rowHeight, margin, containerWidth, onDrag } = props
-    if (!onDrag) return
-
+    const { i, w, h, transformScale, isBounded, rowHeight, margin, containerWidth } = props
+    if (!props.onDrag) return
+    console.log('onDrag', dragging, i)
     deltaX /= transformScale
     deltaY /= transformScale
 
@@ -114,23 +119,34 @@ const GridItem: FC<GridItemProps> = (props) => {
     setDragging(newPosition)
 
     const { x, y } = clacXY(positionParams, top, left, w, h)
-    return onDrag(i, x, y, { e, node, newPosition })
+    return props.onDrag(i, x, y, { e, node, newPosition })
   }
 
   const onDragStop: DraggableCoreProps['onStop'] = (e, { node }) => {
-    const { i, w, h, onDragStop } = props
-    if (!onDragStop) return
+    const { i, w, h } = props
+    if (!props.onDragStop) return
 
     if (!dragging) {
       throw new Error('onDragEnd called before onDragStart')
     }
-
+    console.log('ondragstop')
     const newPosition = dragging
     setDragging(null)
 
     const { x, y } = clacXY(positionParams, dragging.top, dragging.left, w, h)
-    return onDragStop(i, x, y, { e, node, newPosition })
+    return props.onDragStop(i, x, y, { e, node, newPosition })
   }
+
+  // 注册 draggable
+  const { nodeRef, onMouseDown, onMouseUp } = useDraggable({
+    disabled: !props.isDraggable,
+    onStart: onDragStart,
+    onDrag,
+    onStop: onDragStop,
+    handle: props.handle,
+    cancel: `.react-resizable-handle ${props.cancel ? `,${props.cancel}` : ''}`,
+    scale: props.transformScale
+  })
 
   const onResizeHandler = (e: MouseEvent<HTMLElement>, { node, size }: ResizeData, handlerName: 'onResizeStart' | 'onResizeStop' | 'onResize') => {
     const { i, x, cols, minH } = props
@@ -153,16 +169,6 @@ const GridItem: FC<GridItemProps> = (props) => {
   const onResizeStart: ResizableProps['onResizeStart'] = (e, data) => onResizeHandler(e, data, 'onResizeStart')
   const onResizeStop: ResizableProps['onResizeStop'] = (e, data) => onResizeHandler(e, data, 'onResizeStop')
   const onResize: ResizableProps['onResize'] = (e, data) => onResizeHandler(e, data, 'onResize')
-
-  const { nodeRef, onMouseDown, onMouseUp } = useDraggable({
-    disabled: !props.isDraggable,
-    onStart: onDragStart,
-    onDrag,
-    onStop: onDragStop,
-    handle: props.handle,
-    cancel: `.react-resizable-handle ${props.cancel ? `,${props.cancel}` : ''}`,
-    scale: props.transformScale
-  })
 
   useEffect(() => {
     const { droppingPosition } = props
