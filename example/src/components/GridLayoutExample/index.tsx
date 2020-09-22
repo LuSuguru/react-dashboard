@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React, { FC, memo } from 'react'
 import { GridLayout } from 'grid-layout'
 import './style.less'
 
@@ -8,6 +8,12 @@ const layout = [
   { x: 4, y: 0, w: 2, h: 2, i: '2' },
   { x: 2, y: 5, w: 2, h: 2, i: '3' },
 ]
+
+const Test = memo((props: any) => (
+  <div {...props}>
+    <span className="text">{props.children}</span>
+  </div>
+))
 
 const GridLayoutExample: FC<any> = () => (
   <div>
@@ -26,7 +32,7 @@ const GridLayoutExample: FC<any> = () => (
       <GridLayout layout={layout} width={800} cols={6} rowHeight={30} containerPadding={[0, 0]}>
         {layout.map(l => (
           <div key={l.i}>
-            <span className="text">{l.i}</span>
+            <Test>{l.i}</Test>
           </div>
         ))}
       </GridLayout>

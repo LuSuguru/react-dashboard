@@ -1,4 +1,4 @@
-import React, { ReactElement, FC, useState, CSSProperties, MouseEvent, useMemo, useEffect } from 'react'
+import React, { ReactElement, FC, CSSProperties, MouseEvent, useEffect } from 'react'
 import classnames from 'clsx'
 import { Resizable } from 'resizable'
 import { useDraggable, DraggableCoreProps } from 'draggable'
@@ -7,6 +7,7 @@ import { ResizableProps } from 'resizable/es/components/Resizable'
 
 import { calcGridItemPosition, clacWH, clamp, clacXY, calcGridItemWHPx, calcGridColWidth } from '../utils/calculate'
 import { setTransform, setTopLeft, perc } from '../utils/utils'
+import useStates from '../hooks/useStates'
 import { PositionParams, Position, Size, Bound, GridItemCallback, GridResizeEvent, GridDraggEvent, DroppingPosition } from '../type'
 
 export interface GridItemProps extends PositionParams {
@@ -48,25 +49,29 @@ export interface GridItemProps extends PositionParams {
   onDragStop?: GridItemCallback<GridDraggEvent>
 }
 
+interface State {
+  dragging: Position
+  resizing: Size
+}
+
+const initialState: State = {
+  dragging: null,
+  resizing: null
+}
+
 const GridItem: FC<GridItemProps> = (props) => {
   const { cols, containerPadding, containerWidth, margin, maxRows, rowHeight, x, y, w, h } = props
   const positionParams = { cols, containerPadding, containerWidth, margin, maxRows, rowHeight }
 
-  const [dragging, setDragging] = useState<Position>(null)
-  const [resizing, setResizing] = useState<Size>(null)
+  const [state, setState] = useStates(initialState)
 
-  const pos = calcGridItemPosition(positionParams, x, y, w, h, { resizing, dragging })
-
-  if (props.i === '0') {
-    console.log(dragging, props.i)
-  }
+  const pos = calcGridItemPosition(positionParams, x, y, w, h, state)
 
   const onDragStart: DraggableCoreProps['onStart'] = (e, { node }) => {
     const { i, transformScale } = props
     if (!props.onDragStart) return
 
     const newPosition: Position = { top: 0, left: 0 }
-    console.log('onDragStart')
 
     const { offsetParent } = node
     if (!offsetParent) return
@@ -82,7 +87,7 @@ const GridItem: FC<GridItemProps> = (props) => {
     newPosition.left = cLeft - pLeft + offsetParent.scrollLeft
     newPosition.top = cTop - pTop + offsetParent.scrollTop
 
-    setDragging(newPosition)
+    setState({ dragging: newPosition })
     const { x, y } = clacXY(positionParams, newPosition.top, newPosition.left, w, h)
 
     return props.onDragStart(i, x, y, { e, node, newPosition })
@@ -90,8 +95,9 @@ const GridItem: FC<GridItemProps> = (props) => {
 
   const onDrag: DraggableCoreProps['onDrag'] = (e, { node, deltaX, deltaY }) => {
     const { i, w, h, transformScale, isBounded, rowHeight, margin, containerWidth } = props
+    const { dragging } = state
     if (!props.onDrag) return
-    console.log('onDrag', dragging, i)
+
     deltaX /= transformScale
     deltaY /= transformScale
 
@@ -116,7 +122,7 @@ const GridItem: FC<GridItemProps> = (props) => {
     }
 
     const newPosition = { top, left }
-    setDragging(newPosition)
+    setState({ dragging: newPosition })
 
     const { x, y } = clacXY(positionParams, top, left, w, h)
     return props.onDrag(i, x, y, { e, node, newPosition })
@@ -124,6 +130,8 @@ const GridItem: FC<GridItemProps> = (props) => {
 
   const onDragStop: DraggableCoreProps['onStop'] = (e, { node }) => {
     const { i, w, h } = props
+    const { dragging } = state
+
     if (!props.onDragStop) return
 
     if (!dragging) {
@@ -131,7 +139,7 @@ const GridItem: FC<GridItemProps> = (props) => {
     }
     console.log('ondragstop')
     const newPosition = dragging
-    setDragging(null)
+    setState({ dragging: null })
 
     const { x, y } = clacXY(positionParams, dragging.top, dragging.left, w, h)
     return props.onDragStop(i, x, y, { e, node, newPosition })
@@ -162,7 +170,7 @@ const GridItem: FC<GridItemProps> = (props) => {
     w = clamp(w, minW, maxW)
     h = clamp(h, minH, maxW)
 
-    setResizing(handlerName == 'onResizeStop' ? null : size)
+    setState({ resizing: handlerName == 'onResizeStop' ? null : size })
     handler(i, w, h, { e, node, size })
   }
 
@@ -172,6 +180,8 @@ const GridItem: FC<GridItemProps> = (props) => {
 
   useEffect(() => {
     const { droppingPosition } = props
+    const { dragging } = state
+
     if (!droppingPosition) return
 
     if (!dragging) {
@@ -231,9 +241,9 @@ const GridItem: FC<GridItemProps> = (props) => {
       props.className,
       {
         isStatic: props.isStatic,
-        resizing: !!resizing,
+        resizing: !!state.resizing,
         'react-draggable': props.isDraggable,
-        'react-draggable-dragging': !!dragging,
+        'react-draggable-dragging': !!state.dragging,
         dropping: !!props.droppingPosition,
         cssTransforms: useCSSTransforms
       }
