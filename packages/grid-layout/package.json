@@ -11,7 +11,8 @@
   "dependencies": {
     "@babel/runtime": "^7.11.2",
     "father-build": "^1.18.4",
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.20",
+    "resize-observer-polyfill": "^1.5.1"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.161",

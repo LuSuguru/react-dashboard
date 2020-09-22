@@ -29,7 +29,7 @@ export function perc(num: number): string {
   return num * 100 + '%'
 }
 
-export function cloneLayoutItem(layoutItem: LayoutItem) {
+export function cloneLayoutItem(layoutItem: LayoutItem): LayoutItem {
   return {
     w: layoutItem.w,
     h: layoutItem.h,
@@ -47,6 +47,10 @@ export function cloneLayoutItem(layoutItem: LayoutItem) {
     isResizable: layoutItem.isResizable,
     isBounded: layoutItem.isBounded
   }
+}
+
+export function cloneLayout(layout: Layout): Layout {
+  return layout.map(layoutItem => cloneLayoutItem(layoutItem))
 }
 
 // 获取整个 layout 区域的下边界

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/indent */
-import React, { memo, FC, RefObject, Children, ReactElement, MouseEvent, useEffect, useMemo } from 'react'
+import React, { memo, FC, RefObject, Children, ReactElement, useEffect, useMemo } from 'react'
 import classnames from 'clsx'
 import isEqual from 'lodash/isEqual'
 
 import { useStates, useMoveElement, usePrevious, useUpdateEffect } from '../hooks'
 import { correctBounds, compact, getAllCollisions } from '../utils/collision'
 import { getBottom, cloneLayoutItem, getLayoutItem, childrenEqual } from '../utils/utils'
-import { Layout, CompactType, LayoutItem, DroppingPosition } from '../type'
+import { Layout, CompactType, LayoutItem, DroppingPosition, EventCallbck } from '../type'
 
 import GridItem, { GridItemProps } from './GridItem'
 import Placeholder from './Placeholder'
@@ -25,9 +25,7 @@ type ExtendsProps = Partial<Pick<GridItemProps,
   | 'useCSSTransforms'
   | 'transformScale'>>
 
-type EventCallbck = (layout: Layout, oldItem: LayoutItem, newItem: LayoutItem, placeholder: LayoutItem, e: MouseEvent<HTMLElement>, node: HTMLElement) => void
-
-interface GridLayoutProps extends ExtendsProps {
+export interface GridLayoutProps extends ExtendsProps {
   children: ReactElement[]
   width: number
   layout: Layout
@@ -62,12 +60,12 @@ interface State {
   oldResizeItem: LayoutItem
 }
 
-const layoutClassName = 'react-grid-layout'
+export const layoutClassName = 'react-grid-layout'
 
 const getCompactType = (vertialCompact: boolean, compactType: CompactType) => (vertialCompact ? compactType : null)
 
 // 同步 layout
-function syncLayoutWithChildren(initialLayout: Layout = [], children: ReactElement[], cols: number, compactType: CompactType): Layout {
+export function syncLayoutWithChildren(initialLayout: Layout = [], children: ReactElement[], cols: number, compactType: CompactType): Layout {
   const layout: LayoutItem[] = []
 
   Children.forEach(children, (child: ReactElement, index: number) => {

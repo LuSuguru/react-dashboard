@@ -7,7 +7,7 @@ import { ResizableProps } from 'resizable/es/components/Resizable'
 
 import { calcGridItemPosition, clacWH, clamp, clacXY, calcGridItemWHPx, calcGridColWidth } from '../utils/calculate'
 import { setTransform, setTopLeft, perc } from '../utils/utils'
-import useStates from '../hooks/useStates'
+import { useStates } from '../hooks'
 import { PositionParams, Position, Size, Bound, GridItemCallback, GridResizeEvent, GridDraggEvent, DroppingPosition } from '../type'
 
 export interface GridItemProps extends PositionParams {

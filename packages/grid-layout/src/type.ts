@@ -61,3 +61,17 @@ export interface LayoutItem {
 export type Layout = readonly LayoutItem[]
 
 export type CompactType = 'horizontal' | 'vertical'
+
+export type EventCallbck = (layout: Layout, oldItem: LayoutItem, newItem: LayoutItem, placeholder: LayoutItem, e: MouseEvent<HTMLElement>, node: HTMLElement) => void
+
+export type Breakpoint = 'lg' | 'md' | 'sm' | 'xs' | 'xxs'
+
+export type Breakpoints = {
+  [key in Breakpoint]?: number
+}
+
+export type ResponsiveLayout = {
+  [key in Breakpoint]?: Layout
+}
+
+export type ResponsiveMargin = { [key in Breakpoint]?: [number, number] } | [number, number]
