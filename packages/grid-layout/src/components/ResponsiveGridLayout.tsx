@@ -1,11 +1,11 @@
-import React, { memo, FC, useEffect } from 'react'
+import React, { memo, FC } from 'react'
 import isEqual from 'lodash/isEqual'
 
 import { Breakpoint, Breakpoints, ResponsiveLayout, ResponsiveMargin, Layout } from '../type'
 import { findOrGenerateResponsiveLayout, getBreakpointFormWidth, getColsFromBreakpoint } from '../utils/responsive'
-import { useStates, usePersistFn, usePrevious, useUpdateEffect } from '../hooks'
+import { cloneLayout } from '../utils/utils'
+import { useStates, usePersistFn, usePrevious, useUpdateEffect, useResize } from '../hooks'
 import GridLayout, { GridLayoutProps, syncLayoutWithChildren } from './GridLayout'
-import { cloneLayout } from '@/utils/utils'
 
 function getIndentationValue(param: ResponsiveMargin, breakpoint: Breakpoint) {
   return Array.isArray(param) ? param : param[breakpoint]
@@ -15,7 +15,6 @@ interface ResponsiveGirdLayoutProps extends Omit<GridLayoutProps, 'cols' | 'layo
   layouts: ResponsiveLayout
   breakpoints?: Breakpoints
   cols?: Breakpoints
-  width: number
   margin?: ResponsiveMargin
   containerPadding?: ResponsiveMargin
   onBreakpointChange: (breakpoint: Breakpoint, cols: number) => void
@@ -35,11 +34,13 @@ const initialState: State = {
   cols: 12
 }
 
+const initialWidth = 1280
+
 const ResponsiveGirdLayout: FC<ResponsiveGirdLayoutProps> = (props) => {
   function generateInitialState(): State {
-    const { width, breakpoints, layouts, cols, vertialCompact } = props
+    const { breakpoints, layouts, cols, vertialCompact } = props
 
-    const breakpoint = getBreakpointFormWidth(breakpoints, width)
+    const breakpoint = getBreakpointFormWidth(breakpoints, initialWidth)
     const colNo = getColsFromBreakpoint(breakpoint, cols)
     const compactType = vertialCompact === false ? null : props.compactType
 
@@ -48,17 +49,18 @@ const ResponsiveGirdLayout: FC<ResponsiveGirdLayoutProps> = (props) => {
     return {
       layout: initialLayout,
       cols: colNo,
-      breakpoint
+      breakpoint,
     }
   }
 
   const [state, setState] = useStates(initialState, generateInitialState)
+  const width = useResize(initialWidth)
   const prevProps = usePrevious(props)
   const prevState = usePrevious(state)
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     onWidthChange()
-  }, [props.width, JSON.stringify(props.breakpoints), JSON.stringify(props.cols)])
+  }, [width, JSON.stringify(props.breakpoints), JSON.stringify(props.cols)])
 
   useUpdateEffect(() => {
     if (!isEqual(prevProps.layouts, props.layouts)) {
@@ -83,7 +85,7 @@ const ResponsiveGirdLayout: FC<ResponsiveGirdLayoutProps> = (props) => {
   })
 
   const onWidthChange = usePersistFn(() => {
-    const { breakpoints, cols, layouts, compactType, width } = props
+    const { breakpoints, cols, layouts, compactType } = props
 
     const newBreakpoint = getBreakpointFormWidth(breakpoints, width)
     const lastBreakpoint = state.breakpoint
@@ -114,7 +116,7 @@ const ResponsiveGirdLayout: FC<ResponsiveGirdLayoutProps> = (props) => {
     const margin = getIndentationValue(props.margin, newBreakpoint)
     const containerPadding = getIndentationValue(props.containerPadding, newBreakpoint)
 
-    props.onWidthChange?.(props.width, margin, newCols, containerPadding)
+    props.onWidthChange?.(width, margin, newCols, containerPadding)
   })
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -122,6 +124,7 @@ const ResponsiveGirdLayout: FC<ResponsiveGirdLayoutProps> = (props) => {
   return (
     <GridLayout
       {...otherProps}
+      width={width}
       margin={getIndentationValue(margin, state.breakpoint)}
       containerPadding={getIndentationValue(containerPadding, state.breakpoint)}
       layout={state.layout}
