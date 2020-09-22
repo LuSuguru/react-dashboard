@@ -137,7 +137,7 @@ const GridItem: FC<GridItemProps> = (props) => {
     if (!dragging) {
       throw new Error('onDragEnd called before onDragStart')
     }
-    console.log('ondragstop')
+
     const newPosition = dragging
     setState({ dragging: null })
 
