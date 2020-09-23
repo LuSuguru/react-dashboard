@@ -1,4 +1,4 @@
-import React, { ReactElement, FC, CSSProperties, MouseEvent, useEffect } from 'react'
+import React, { ReactElement, FC, CSSProperties, MouseEvent, useEffect, useMemo } from 'react'
 import classnames from 'clsx'
 import { Resizable } from 'resizable'
 import { useDraggable, DraggableCoreProps } from 'draggable'
@@ -202,76 +202,78 @@ const GridItem: FC<GridItemProps> = (props) => {
     }
   }, [props.droppingPosition?.left, props.droppingPosition?.top])
 
-  const { minW, minH, maxW, maxH, useCSSTransforms, usePercentages } = props
+  return useMemo(() => {
+    const { minW, minH, maxW, maxH, useCSSTransforms, usePercentages } = props
 
-  const createStyle = (pos: Bound) => {
-    let style: CSSProperties
-    if (useCSSTransforms) {
-      style = setTransform(pos)
-    } else {
-      style = setTopLeft(pos)
+    const createStyle = (pos: Bound) => {
+      let style: CSSProperties
+      if (useCSSTransforms) {
+        style = setTransform(pos)
+      } else {
+        style = setTopLeft(pos)
 
-      if (usePercentages) {
-        style.left = perc(pos.left / containerWidth)
-        style.width = perc(pos.width / containerWidth)
+        if (usePercentages) {
+          style.left = perc(pos.left / containerWidth)
+          style.width = perc(pos.width / containerWidth)
+        }
       }
+      return style
     }
-    return style
-  }
 
-  const getMinOrMaxConstraints = () => {
-    const maxWidth = calcGridItemPosition(positionParams, 0, 0, cols - x, 0).width
-    const mins = calcGridItemPosition(positionParams, 0, 0, minW, minH)
-    const maxes = calcGridItemPosition(positionParams, 0, 0, maxW, maxH)
-    const minConstraints: [number, number] = [mins.width, mins.height]
-    const maxConstraints: [number, number] = [
-      Math.min(maxes.width, maxWidth),
-      Math.max(maxes.height, Infinity)
-    ]
+    const getMinOrMaxConstraints = () => {
+      const maxWidth = calcGridItemPosition(positionParams, 0, 0, cols - x, 0).width
+      const mins = calcGridItemPosition(positionParams, 0, 0, minW, minH)
+      const maxes = calcGridItemPosition(positionParams, 0, 0, maxW, maxH)
+      const minConstraints: [number, number] = [mins.width, mins.height]
+      const maxConstraints: [number, number] = [
+        Math.min(maxes.width, maxWidth),
+        Math.max(maxes.height, Infinity)
+      ]
 
-    return { minConstraints, maxConstraints }
-  }
+      return { minConstraints, maxConstraints }
+    }
 
-  const child = React.Children.only(props.children)
+    const child = React.Children.only(props.children)
 
-  const newChild = React.cloneElement(child, {
-    className: classnames(
-      'react-grid-item',
-      child.props.className,
-      props.className,
-      {
-        isStatic: props.isStatic,
-        resizing: !!state.resizing,
-        'react-draggable': props.isDraggable,
-        'react-draggable-dragging': !!state.dragging,
-        dropping: !!props.droppingPosition,
-        cssTransforms: useCSSTransforms
+    const newChild = React.cloneElement(child, {
+      className: classnames(
+        'react-grid-item',
+        child.props.className,
+        props.className,
+        {
+          isStatic: props.isStatic,
+          resizing: !!state.resizing,
+          'react-draggable': props.isDraggable,
+          'react-draggable-dragging': !!state.dragging,
+          dropping: !!props.droppingPosition,
+          cssTransforms: useCSSTransforms
+        }
+      ),
+      ref: nodeRef,
+      onMouseDown,
+      onMouseUp,
+      style: {
+        ...props.style,
+        ...child.props.style,
+        ...createStyle(pos)
       }
-    ),
-    ref: nodeRef,
-    onMouseDown,
-    onMouseUp,
-    style: {
-      ...props.style,
-      ...child.props.style,
-      ...createStyle(pos)
-    }
-  })
+    })
 
-  return (
-    <Resizable
-      {...getMinOrMaxConstraints()}
-      draggableOpts={{ disabled: !props.isResizable }}
-      className={props.isResizable ? undefined : 'react-resizable-hide'}
-      width={pos.width}
-      height={pos.height}
-      transformScale={props.transformScale}
-      onResize={onResize}
-      onResizeStart={onResizeStart}
-      onResizeStop={onResizeStop}>
-      {newChild}
-    </Resizable>
-  )
+    return (
+      <Resizable
+        {...getMinOrMaxConstraints()}
+        draggableOpts={{ disabled: !props.isResizable }}
+        className={props.isResizable ? undefined : 'react-resizable-hide'}
+        width={pos.width}
+        height={pos.height}
+        transformScale={props.transformScale}
+        onResize={onResize}
+        onResizeStart={onResizeStart}
+        onResizeStop={onResizeStop}>
+        {newChild}
+      </Resizable>
+    )
+  }, [pos.height, pos.width, pos.left, pos.top, props.useCSSTransforms])
 }
 
 GridItem.defaultProps = {

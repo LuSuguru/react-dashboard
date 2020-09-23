@@ -124,7 +124,7 @@ const GridLayout: FC<GridLayoutProps> = (props) => {
     if (!state.activeDrag) {
       onLayoutMaybeChanged(state.layout, prevState?.layout)
     }
-  }, [state.activeDrag, state.droppingPosition, props.children])
+  }, [state.activeDrag])
 
   // 监听 layout，compactType，children 变化，更新 state 的 layout
   useUpdateEffect(() => {

@@ -12,7 +12,7 @@ export function calcGridItemWHPx(gridUnits: number, colOrRowSize: number, margin
   return Math.round(colOrRowSize * gridUnits) + Math.max(0, gridUnits - 1) * marginPx
 }
 
-export function calcGridItemPosition(positionParams: PositionParams, x: number, y: number, w: number, h: number, state?: { resizing: Size, dragging: Position }) {
+export function calcGridItemPosition(positionParams: PositionParams, x: number, y: number, w: number, h: number, state?: { resizing: Size, dragging: Position }): Bound {
   const { margin, containerPadding, rowHeight } = positionParams
   const colWidth = calcGridColWidth(positionParams)
 
