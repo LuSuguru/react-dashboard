@@ -7,7 +7,6 @@ export default function useResize(initialWidth: number) {
   useEffect(() => {
     const onWindowResize = () => {
       const node = document.querySelector(`.${layoutClassName}`) as HTMLDivElement
-      console.log(node.offsetWidth)
       setWidth(node.offsetWidth)
     }
 

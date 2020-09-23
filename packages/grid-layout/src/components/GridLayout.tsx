@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/indent */
-import React, { memo, FC, RefObject, Children, ReactElement, useEffect, useMemo } from 'react'
+import React, { memo, FC, RefObject, Children, ReactElement, useEffect } from 'react'
 import classnames from 'clsx'
 import isEqual from 'lodash/isEqual'
 
@@ -354,36 +354,34 @@ const GridLayout: FC<GridLayoutProps> = (props) => {
     )
   }
 
-  return useMemo(() => {
-    const { innerRef, className, style, children, isDroppable, width, cols, margin, containerPadding, rowHeight, maxRows, useCSSTransforms, transformScale } = props
-    const { droppingDOMNode, activeDrag } = state
+  const { innerRef, className, style, children, isDroppable, width, cols, margin, containerPadding, rowHeight, maxRows, useCSSTransforms, transformScale } = props
+  const { droppingDOMNode, activeDrag } = state
 
-    return (
-      <div
-        ref={innerRef}
-        className={classnames(layoutClassName, className)}
-        style={{
-          height: containerHeight(),
-          ...style
-        }}>
+  return (
+    <div
+      ref={innerRef}
+      className={classnames(layoutClassName, className)}
+      style={{
+        height: containerHeight(),
+        ...style
+      }}>
 
-        {Children.map(children, (child: ReactElement) => processGridItem(child))}
+      {Children.map(children, (child: ReactElement) => processGridItem(child))}
 
-        {isDroppable && droppingDOMNode && processGridItem(droppingDOMNode, true)}
+      {isDroppable && droppingDOMNode && processGridItem(droppingDOMNode, true)}
 
-        <Placeholder
-          activeDrag={activeDrag}
-          width={width}
-          cols={cols}
-          margin={margin}
-          containerPadding={containerPadding}
-          rowHeight={rowHeight}
-          maxRows={maxRows}
-          useCSSTransforms={useCSSTransforms}
-          transformScale={transformScale} />
-      </div>
-    )
-  }, [state.activeDrag, state.droppingPosition, props.children])
+      <Placeholder
+        activeDrag={activeDrag}
+        width={width}
+        cols={cols}
+        margin={margin}
+        containerPadding={containerPadding}
+        rowHeight={rowHeight}
+        maxRows={maxRows}
+        useCSSTransforms={useCSSTransforms}
+        transformScale={transformScale} />
+    </div>
+  )
 }
 
 GridLayout.defaultProps = {

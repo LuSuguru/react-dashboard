@@ -31,7 +31,11 @@ const GridLayoutExample: FC<any> = () => (
       </div>
     </div>
     <div>
-      <ResponsiveGridLayout layouts={layouts} cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }} rowHeight={30} containerPadding={[0, 0]}>
+      <ResponsiveGridLayout
+        layouts={layouts}
+        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+        rowHeight={30}
+        containerPadding={[0, 0]}>
         {layouts.lg.map(l => (
           <div key={l.i}>
             <Test>{l.i}</Test>
