@@ -2,14 +2,22 @@ import React, { FC, memo } from 'react'
 import { ResponsiveGridLayout } from 'grid-layout'
 import './style.less'
 
-const layouts = {
-  lg: [
-    { x: 0, y: 0, w: 2, h: 2, i: '0' },
-    { x: 2, y: 0, w: 2, h: 5, i: '1' },
-    { x: 4, y: 0, w: 2, h: 2, i: '2' },
-    { x: 2, y: 5, w: 2, h: 2, i: '3' },
-  ]
+function generateLayout() {
+  return new Array(20).fill(1).map((item, i) => {
+    console.log(1)
+    const y = Math.ceil(Math.random() * 4) + 1
+    return {
+      x: Math.round(Math.random() * 5) * 2,
+      y: Math.floor(i / 6) * y,
+      w: 2,
+      h: y,
+      i: i.toString(),
+      static: Math.random() < 0.05
+    }
+  })
 }
+
+const layouts = { lg: generateLayout() }
 
 const Test = memo((props: any) => (
   <div {...props}>
@@ -33,6 +41,7 @@ const GridLayoutExample: FC<any> = () => (
     <div>
       <ResponsiveGridLayout
         layouts={layouts}
+        resizeHandles={['se', 's', 'e']}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
         rowHeight={30}
         containerPadding={[0, 0]}>

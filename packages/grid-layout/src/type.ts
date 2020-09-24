@@ -1,4 +1,5 @@
 import { MouseEvent, DragEvent } from 'react'
+import { Direction } from 'resizable/es/type'
 
 export interface PositionParams {
   cols: number
@@ -56,6 +57,8 @@ export interface LayoutItem {
   isDraggable?: boolean
   isResizable?: boolean
   isBounded?: boolean
+
+  resizeHanldes?: Direction[]
 }
 
 export type Layout = readonly LayoutItem[]

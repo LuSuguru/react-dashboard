@@ -6,6 +6,8 @@ export interface ResizeData {
   size: {
     width: number
     height: number
+    deltaX: number
+    deltaY: number
   }
   direction: Direction
 }

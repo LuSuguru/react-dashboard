@@ -113,7 +113,7 @@ const Resizable: FC<ResizableProps> = (props) => {
     }
 
     if (typeof props[resizeType] === 'function') {
-      props[resizeType](e, { node, size: { width, height }, direction })
+      props[resizeType](e, { node, size: { width, height, deltaX, deltaY }, direction })
     }
   }
 

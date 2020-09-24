@@ -2,6 +2,7 @@
 import React, { memo, FC, RefObject, Children, ReactElement, useEffect } from 'react'
 import classnames from 'clsx'
 import isEqual from 'lodash/isEqual'
+import { Direction } from 'resizable/es/type'
 
 import { useStates, useMoveElement, usePrevious, useUpdateEffect } from '../hooks'
 import { correctBounds, compact, getAllCollisions } from '../utils/collision'
@@ -35,6 +36,8 @@ export interface GridLayoutProps extends ExtendsProps {
 
   vertialCompact?: boolean
   compactType?: CompactType
+
+  resizeHandles?: Direction[]
 
   draggableCancel?: string
   draggableHandle?: string
@@ -273,7 +276,7 @@ const GridLayout: FC<GridLayoutProps> = (props) => {
     })
   }
 
-  const onResizeStop: GridItemProps['onResizeStop'] = (i, w, h, { e, node }) => {
+  const onResizeStop: GridItemProps['onResizeStop'] = (i, _w, _h, { e, node }) => {
     const { layout, oldResizeItem, oldLayout } = state
     const { cols, vertialCompact, compactType } = props
     const l = getLayoutItem(layout, i)
@@ -301,7 +304,7 @@ const GridLayout: FC<GridLayoutProps> = (props) => {
   }
 
   const processGridItem = (child: ReactElement, isDroppingItem = false) => {
-    const { isBounded, width, cols, margin, containerPadding, maxRows, rowHeight, draggableCancel, draggableHandle, useCSSTransforms, transformScale, isDraggable, isResizable } = props
+    const { isBounded, width, cols, margin, containerPadding, maxRows, rowHeight, draggableCancel, draggableHandle, useCSSTransforms, transformScale, resizeHandles, isDraggable, isResizable } = props
     const { droppingPosition, layout } = state
 
     if (!child || !child.key) return
@@ -315,7 +318,11 @@ const GridLayout: FC<GridLayoutProps> = (props) => {
       ? l.isResizable
       : !l.isStatic && isResizable
 
+    const resizeHandlesOptions = l.resizeHanldes || resizeHandles
+
     const bounded = draggable && isBounded && l.isBounded !== false
+
+    console.log(resizeHandles)
 
     return (
       <GridItem
@@ -332,6 +339,7 @@ const GridLayout: FC<GridLayoutProps> = (props) => {
         isBounded={bounded}
         useCSSTransforms={useCSSTransforms}
         transformScale={transformScale}
+        resizeHandler={resizeHandlesOptions}
         w={l.w}
         h={l.h}
         x={l.x}
@@ -405,7 +413,8 @@ GridLayout.defaultProps = {
   vertialCompact: true,
   compactType: 'vertical',
   draggableCancel: '',
-  draggableHandle: ''
+  draggableHandle: '',
+  resizeHandles: ['se']
 }
 
 export default memo(GridLayout)

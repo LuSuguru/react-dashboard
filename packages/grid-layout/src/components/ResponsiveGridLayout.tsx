@@ -34,7 +34,7 @@ const initialState: State = {
   cols: 12
 }
 
-const initialWidth = 1280
+const initialWidth = window.innerWidth
 
 const ResponsiveGirdLayout: FC<ResponsiveGirdLayoutProps> = (props) => {
   function generateInitialState(): State {
@@ -121,6 +121,7 @@ const ResponsiveGirdLayout: FC<ResponsiveGirdLayoutProps> = (props) => {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { breakpoints, cols, layouts, margin, containerPadding, onBreakpointChange, onLayoutChange: layoutChange, onWidthChange: widthChange, ...otherProps } = props
+
   return (
     <GridLayout
       {...otherProps}

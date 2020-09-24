@@ -2,12 +2,12 @@ import React, { ReactElement, FC, CSSProperties, MouseEvent, useEffect, useMemo 
 import classnames from 'clsx'
 import { Resizable } from 'resizable'
 import { useDraggable, DraggableCoreProps } from 'draggable'
-import { ResizeData } from 'resizable/es/type'
+import { Direction, ResizeData } from 'resizable/es/type'
 import { ResizableProps } from 'resizable/es/components/Resizable'
 
 import { calcGridItemPosition, clacWH, clamp, clacXY, calcGridItemWHPx, calcGridColWidth } from '../utils/calculate'
 import { setTransform, setTopLeft, perc } from '../utils/utils'
-import { useStates } from '../hooks'
+import { usePersistFn, useStates } from '../hooks'
 import { PositionParams, Position, Size, Bound, GridItemCallback, GridResizeEvent, GridDraggEvent, DroppingPosition } from '../type'
 
 export interface GridItemProps extends PositionParams {
@@ -39,6 +39,7 @@ export interface GridItemProps extends PositionParams {
   useCSSTransforms: boolean
   usePercentages?: boolean
   transformScale: number
+  resizeHandler?: Direction[]
 
   onResize?: GridItemCallback<GridResizeEvent>
   onResizeStart?: GridItemCallback<GridResizeEvent>
@@ -67,7 +68,7 @@ const GridItem: FC<GridItemProps> = (props) => {
 
   const pos = calcGridItemPosition(positionParams, x, y, w, h, state)
 
-  const onDragStart: DraggableCoreProps['onStart'] = (e, { node }) => {
+  const onDragStart: DraggableCoreProps['onStart'] = usePersistFn((e, { node }) => {
     const { i, transformScale } = props
     if (!props.onDragStart) return
 
@@ -91,11 +92,12 @@ const GridItem: FC<GridItemProps> = (props) => {
     const { x, y } = clacXY(positionParams, newPosition.top, newPosition.left, w, h)
 
     return props.onDragStart(i, x, y, { e, node, newPosition })
-  }
+  })
 
-  const onDrag: DraggableCoreProps['onDrag'] = (e, { node, deltaX, deltaY }) => {
+  const onDrag: DraggableCoreProps['onDrag'] = usePersistFn((e, { node, deltaX, deltaY }) => {
     const { i, w, h, transformScale, isBounded, rowHeight, margin, containerWidth } = props
     const { dragging } = state
+
     if (!props.onDrag) return
 
     deltaX /= transformScale
@@ -126,9 +128,9 @@ const GridItem: FC<GridItemProps> = (props) => {
 
     const { x, y } = clacXY(positionParams, top, left, w, h)
     return props.onDrag(i, x, y, { e, node, newPosition })
-  }
+  })
 
-  const onDragStop: DraggableCoreProps['onStop'] = (e, { node }) => {
+  const onDragStop: DraggableCoreProps['onStop'] = usePersistFn((e, { node }) => {
     const { i, w, h } = props
     const { dragging } = state
 
@@ -143,7 +145,7 @@ const GridItem: FC<GridItemProps> = (props) => {
 
     const { x, y } = clacXY(positionParams, dragging.top, dragging.left, w, h)
     return props.onDragStop(i, x, y, { e, node, newPosition })
-  }
+  })
 
   // 注册 draggable
   const { nodeRef, onMouseDown, onMouseUp } = useDraggable({
@@ -157,7 +159,7 @@ const GridItem: FC<GridItemProps> = (props) => {
   })
 
   const onResizeHandler = (e: MouseEvent<HTMLElement>, { node, size }: ResizeData, handlerName: 'onResizeStart' | 'onResizeStop' | 'onResize') => {
-    const { i, x, cols, minH } = props
+    const { i, x, y, cols, minH } = props
     const handler = props[handlerName]
     if (!handler) return
 
@@ -174,9 +176,9 @@ const GridItem: FC<GridItemProps> = (props) => {
     handler(i, w, h, { e, node, size })
   }
 
-  const onResizeStart: ResizableProps['onResizeStart'] = (e, data) => onResizeHandler(e, data, 'onResizeStart')
-  const onResizeStop: ResizableProps['onResizeStop'] = (e, data) => onResizeHandler(e, data, 'onResizeStop')
-  const onResize: ResizableProps['onResize'] = (e, data) => onResizeHandler(e, data, 'onResize')
+  const onResizeStart: ResizableProps['onResizeStart'] = usePersistFn((e, data) => onResizeHandler(e, data, 'onResizeStart'))
+  const onResizeStop: ResizableProps['onResizeStop'] = usePersistFn((e, data) => onResizeHandler(e, data, 'onResizeStop'))
+  const onResize: ResizableProps['onResize'] = usePersistFn((e, data) => onResizeHandler(e, data, 'onResize'))
 
   useEffect(() => {
     const { droppingPosition } = props
@@ -203,7 +205,7 @@ const GridItem: FC<GridItemProps> = (props) => {
   }, [props.droppingPosition?.left, props.droppingPosition?.top])
 
   return useMemo(() => {
-    const { minW, minH, maxW, maxH, useCSSTransforms, usePercentages } = props
+    const { minW, minH, maxW, maxH, useCSSTransforms, usePercentages, resizeHandler } = props
 
     const createStyle = (pos: Bound) => {
       let style: CSSProperties
@@ -264,6 +266,7 @@ const GridItem: FC<GridItemProps> = (props) => {
         {...getMinOrMaxConstraints()}
         draggableOpts={{ disabled: !props.isResizable }}
         className={props.isResizable ? undefined : 'react-resizable-hide'}
+        resizeHandles={resizeHandler}
         width={pos.width}
         height={pos.height}
         transformScale={props.transformScale}
@@ -284,7 +287,8 @@ GridItem.defaultProps = {
   minH: 1,
   maxW: Infinity,
   maxH: Infinity,
-  transformScale: 1
+  transformScale: 1,
+  resizeHandler: ['se']
 }
 
 export default GridItem
